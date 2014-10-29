@@ -27,4 +27,11 @@ console.log(k) /* => {
   public: Buffer(...),
   private: Buffer(...)
 }*/
+
+var k = ssbkeys.loadSync(path)
+console.log(k) /* => {
+  id: Buffer(...),
+  public: Buffer(...),
+  private: Buffer(...)
+}*/
 ```
