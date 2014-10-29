@@ -7,26 +7,13 @@ var Blake2s  = require('blake2s')
 function bsum (value) {
   return new Blake2s().update(value).digest()
 }
+function empty(v) { return !!v }
 
-exports.load = function(namefile) {
-  try {
-    function empty(v) { return !!v }
-    var privateKeyStr = fs.readFileSync(namefile, 'ascii').replace(/\s*\#[^\n]*/g, '').split('\n').filter(empty).join('')
-    var privateKey = new Buffer(privateKeyStr, 'hex')
-    var k = ecc.restore(k256, privateKey)
-    k.id = bsum(k.public)
-    return k
-  } catch (e) {
-    return null
-  }
-} 
-
-exports.createKeys = function(namefile, cb) {
+function constructKeys() {
   var privateKey = crypto.randomBytes(32)
   var k          = ecc.restore(k256, privateKey)
-  var id         = bsum(k.public)
-
-  var contents = [
+  k.id           = bsum(k.public)
+  k.keyfile      = [
   '# this is your SECRET name.',
   '# this name gives you magical powers.',
   '# with it you can mark your messages so that your friends can verify',
@@ -39,12 +26,43 @@ exports.createKeys = function(namefile, cb) {
   '',
   '# WARNING! It\'s vital that you DO NOT edit OR share your secret name',
   '# instead, share your public name',
-  '# your public name: ' + id.toString('hex')
+  '# your public name: ' + k.id.toString('hex')
   ].join('\n')
+  return k
+}
 
-  fs.writeFile(namefile, contents, function(err) {
+function reconstructKeys(privateKeyStr) {
+  privateKeyStr = privateKeyStr.replace(/\s*\#[^\n]*/g, '').split('\n').filter(empty).join('')
+  var privateKey = new Buffer(privateKeyStr, 'hex')
+  var k = ecc.restore(k256, privateKey)
+  k.id = bsum(k.public)
+  return k
+}
+
+exports.load = function(namefile, cb) {
+  fs.readFile(namefile, 'ascii', function(err, privateKeyStr) {
     if (err) return cb(err)
-    k.id = id
+    try { cb(null, reconstructKeys(privateKeyStr)) }
+    catch (e) { cb(err) }
+  })
+}
+
+exports.loadSync = function(namefile) {
+  return reconstructKeys(fs.readFileSync(namefile, 'ascii'))
+}
+
+exports.create = function(namefile, cb) {
+  var k = constructKeys()
+  fs.writeFile(namefile, k.keyfile, function(err) {
+    if (err) return cb(err)
+    delete k.keyfile
     cb(null, k)
   })
+}
+
+exports.createSync = function(namefile) {
+  var k = constructKeys()
+  fs.writeFileSync(namefile, k.keyfile)
+  delete k.keyfile
+  return k
 }
