@@ -3,6 +3,8 @@ var crypto   = require('crypto')
 var ecc      = require('eccjs')
 var k256     = ecc.curves.k256
 var Blake2s  = require('blake2s')
+var mkdirp   = require('mkdirp')
+var path     = require('path')
 
 function bsum (value) {
   return new Blake2s().update(value).digest()
@@ -53,16 +55,34 @@ exports.loadSync = function(namefile) {
 
 exports.create = function(namefile, cb) {
   var k = constructKeys()
-  fs.writeFile(namefile, k.keyfile, function(err) {
-    if (err) return cb(err)
-    delete k.keyfile
-    cb(null, k)
+  mkdirp(path.dirname(namefile), function (err) {
+    if(err) return cb(err)
+    fs.writeFile(namefile, k.keyfile, function(err) {
+      if (err) return cb(err)
+      delete k.keyfile
+      cb(null, k)
+    })
   })
 }
 
 exports.createSync = function(namefile) {
   var k = constructKeys()
+  mkdirp.sync(path.dirname(namefile))
   fs.writeFileSync(namefile, k.keyfile)
   delete k.keyfile
   return k
+}
+
+exports.loadOrCreate = function (namefile, cb) {
+  exports.load(namefile, function (err, keys) {
+    if(!err) return cb(null, keys)
+    exports.create(namefile, cb)
+  })
+}
+exports.loadOrCreateSync = function (namefile) {
+  try {
+    return exports.loadSync(namefile)
+  } catch (err) {
+    return exports.createSync(namefile)
+  }
 }
