@@ -5,8 +5,8 @@ var k256     = ecc.curves.k256
 var Blake2s  = require('blake2s')
 var mkdirp   = require('mkdirp')
 var path     = require('path')
-var curve   = ecc.curves.k256
-
+var curve    = ecc.curves.k256
+var createHmac = require('hmac')
 
 
 function hash (data, enc) {
@@ -24,7 +24,6 @@ exports.hash = hash
 function isString(s) {
   return 'string' === typeof s
 }
-
 
 function empty(v) { return !!v }
 
@@ -145,7 +144,7 @@ exports.loadOrCreateSync = function (namefile) {
 
 exports.generate = function () {
   return keysToBase64(ecc.restore(curve, crypto.randomBytes(32)))
-},
+}
 
 //takes a public key and a hash and returns a signature.
 //(a signature must be a node buffer)
@@ -155,14 +154,13 @@ exports.sign = function (keys, hash) {
     ecc.sign(curve, keysToBuffer(keys), hashToBuffer(hash)),
     hashTag + '.k256'
   )
-},
+}
 
 //takes a public key, signature, and a hash
 //and returns true if the signature was valid.
 exports.verify = function (pub, sig, hash) {
   return ecc.verify(curve, keysToBuffer(pub), toBuffer(sig), hashToBuffer(hash))
-},
-
+}
 
 function createHash() {
   return new Blake2s()
