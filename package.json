@@ -5,7 +5,7 @@
   "homepage": "https://github.com/pfraze/ssb-keys",
   "repository": {
     "type": "git",
-    "url": "git://github.com/pfraze/ssb-keys.git"
+    "url": "git://github.com/pfraze/ssb-crypto.git"
   },
   "dependencies": {
     "eccjs": "git://github.com/dominictarr/eccjs.git#586f6d47507184a2efe84684ed0a30605cbc43a5",

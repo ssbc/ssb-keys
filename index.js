@@ -5,16 +5,32 @@ var k256     = ecc.curves.k256
 var Blake2s  = require('blake2s')
 var mkdirp   = require('mkdirp')
 var path     = require('path')
+var curve   = ecc.curves.k256
 
-function bsum (value) {
-  return new Blake2s().update(value).digest()
+
+
+function hash (data, enc) {
+  return new Blake2s().update(data, enc).digest('base64') + '.blake2s'
 }
+
+
+function isHash (data) {
+  return isString(data) && /^[A-Za-z0-9\/+]{43}=\.blake2s$/.test(data)
+}
+
+exports.isHash = isHash
+exports.hash = hash
+
+function isString(s) {
+  return 'string' === typeof s
+}
+
+
 function empty(v) { return !!v }
 
 function constructKeys() {
   var privateKey = crypto.randomBytes(32)
-  var k          = ecc.restore(k256, privateKey)
-  k.id           = bsum(k.public)
+  var k          = keysToBase64(ecc.restore(k256, privateKey))
   k.keyfile      = [
   '# this is your SECRET name.',
   '# this name gives you magical powers.',
@@ -33,12 +49,49 @@ function constructKeys() {
   return k
 }
 
+
+function toBuffer(buf) {
+  if(buf == null) return buf
+  return new Buffer(buf.substring(0, buf.indexOf('.')), 'base64')
+}
+
+function keysToBase64 (keys) {
+  var pub = tag(keys.public, 'k256')
+  return {
+    public: pub,
+    private: tag(keys.private, 'k256'),
+    id: hash(pub)
+  }
+}
+
+function hashToBuffer(hash) {
+  if(!isHash(hash)) throw new Error('sign expects a hash')
+  return toBuffer(hash)
+}
+
+function keysToBuffer(key) {
+  return isString(key) ? toBuffer(key) : {
+    public: toBuffer(key.public),
+    private: toBuffer(key.private)
+  }
+}
+
 function reconstructKeys(privateKeyStr) {
-  privateKeyStr = privateKeyStr.replace(/\s*\#[^\n]*/g, '').split('\n').filter(empty).join('')
-  var privateKey = new Buffer(privateKeyStr, 'hex')
-  var k = ecc.restore(k256, privateKey)
-  k.id = bsum(k.public)
-  return k
+  privateKeyStr = privateKeyStr
+    .replace(/\s*\#[^\n]*/g, '')
+    .split('\n').filter(empty).join('')
+
+  var privateKey = (
+      !/\./.test(privateKeyStr)
+    ? new Buffer(privateKeyStr, 'hex')
+    : toBuffer(privateKeyStr)
+  )
+
+  return keysToBase64(ecc.restore(k256, privateKey))
+}
+
+function tag (key, tag) {
+  return key.toString('base64')+'.' + tag
 }
 
 exports.load = function(namefile, cb) {
@@ -86,3 +139,37 @@ exports.loadOrCreateSync = function (namefile) {
     return exports.createSync(namefile)
   }
 }
+
+//this should return a key pair:
+// {public: Buffer, private: Buffer}
+
+exports.generate = function () {
+  return keysToBase64(ecc.restore(curve, crypto.randomBytes(32)))
+},
+
+//takes a public key and a hash and returns a signature.
+//(a signature must be a node buffer)
+exports.sign = function (keys, hash) {
+  var hashTag = hash.substring(hash.indexOf('.'))
+  return tag(
+    ecc.sign(curve, keysToBuffer(keys), hashToBuffer(hash)),
+    hashTag + '.k256'
+  )
+},
+
+//takes a public key, signature, and a hash
+//and returns true if the signature was valid.
+exports.verify = function (pub, sig, hash) {
+  return ecc.verify(curve, keysToBuffer(pub), toBuffer(sig), hashToBuffer(hash))
+},
+
+
+function createHash() {
+  return new Blake2s()
+}
+
+exports.hmac = function (data, key) {
+  return createHmac(createHash, 64, key)
+    .update(data).digest('base64')+'.blake2s.hmac'
+}
+
