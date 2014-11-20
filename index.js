@@ -9,12 +9,12 @@ var path     = require('path')
 function bsum (value) {
   return new Blake2s().update(value).digest()
 }
+
 function empty(v) { return !!v }
 
 function constructKeys() {
   var privateKey = crypto.randomBytes(32)
-  var k          = ecc.restore(k256, privateKey)
-  k.id           = bsum(k.public)
+  var k          = keysToBase64(ecc.restore(k256, privateKey))
   k.keyfile      = [
   '# this is your SECRET name.',
   '# this name gives you magical powers.',
@@ -33,12 +33,45 @@ function constructKeys() {
   return k
 }
 
+
+function toBuffer(buf) {
+  if(buf == null) return buf
+  return new Buffer(buf.substring(0, buf.indexOf('.')), 'base64')
+}
+
+function keysToBase64 (keys) {
+  var pub = tag(keys.public, 'k256')
+  return {
+    public: pub,
+    private: tag(keys.private, 'k256'),
+    id: hash(pub)
+  }
+}
+
 function reconstructKeys(privateKeyStr) {
-  privateKeyStr = privateKeyStr.replace(/\s*\#[^\n]*/g, '').split('\n').filter(empty).join('')
-  var privateKey = new Buffer(privateKeyStr, 'hex')
-  var k = ecc.restore(k256, privateKey)
-  k.id = bsum(k.public)
-  return k
+  privateKeyStr = privateKeyStr
+    .replace(/\s*\#[^\n]*/g, '')
+    .split('\n').filter(empty).join('')
+
+  var privateKey = (
+      !/\./.test(privateKeyStr)
+    ? new Buffer(privateKeyStr, 'hex')
+    : toBuffer(privateKeyStr)
+  )
+
+  return keysToBase64(ecc.restore(k256, privateKey))
+}
+
+function tag (key, tag) {
+  return key.toString('base64')+'.' + tag
+}
+
+var hash = exports.hash = function (data, enc) {
+  return new Blake2s().update(data, enc).digest('base64') + '.blake2s'
+}
+
+exports.generate = function () {
+  return keysToBase64(ecc.restore(curve, crypto.randomBytes(32)))
 }
 
 exports.load = function(namefile, cb) {
