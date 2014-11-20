@@ -1,11 +1,11 @@
 {
-  "name": "ssb-keys",
-  "description": "create or load a keypair file for secure-scuttlebutt",
+  "name": "ssb-crypto",
+  "description": "the crypto operations required for secure-scuttlebutt and associated modules",
   "version": "0.1.0",
-  "homepage": "https://github.com/pfraze/ssb-keys",
+  "homepage": "https://github.com/pfraze/ssb-crypto",
   "repository": {
     "type": "git",
-    "url": "git://github.com/pfraze/ssb-keys.git"
+    "url": "git://github.com/pfraze/ssb-crypto.git"
   },
   "dependencies": {
     "eccjs": "git://github.com/dominictarr/eccjs.git#586f6d47507184a2efe84684ed0a30605cbc43a5",
