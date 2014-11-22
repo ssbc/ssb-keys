@@ -90,7 +90,7 @@ function reconstructKeys(privateKeyStr) {
 }
 
 function tag (key, tag) {
-  return key.toString('base64')+'.' + tag
+  return key.toString('base64')+'.' + tag.replace(/^\./, '')
 }
 
 exports.load = function(namefile, cb) {
