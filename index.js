@@ -184,7 +184,7 @@ exports.signObj = function (keys, obj) {
   var _obj = clone(obj)
   var str = JSON.stringify(_obj, null, 2)
   var h = hash(str, 'utf8')
-  _obj.signature = sign(keys, h)
+  _obj.signature = exports.sign(keys, h)
   return _obj
 }
 
