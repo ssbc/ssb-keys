@@ -11,7 +11,8 @@
     "eccjs": "git://github.com/dominictarr/eccjs.git#586f6d47507184a2efe84684ed0a30605cbc43a5",
     "blake2s": "~1.0.0",
     "mkdirp": "~0.5.0",
-    "hmac": "~1.0.1"
+    "hmac": "~1.0.1",
+    "deep-equal": "~0.2.1"
   },
   "devDependencies": {
     "tape": "~3.0.0"
