@@ -7,7 +7,16 @@ var mkdirp   = require('mkdirp')
 var path     = require('path')
 var curve    = ecc.curves.k256
 var createHmac = require('hmac')
+var deepEqual = require('deep-equal')
 
+function clone (obj) {
+  var _obj = {}
+  for(var k in obj) {
+    if(Object.hasOwnProperty.call(obj, k))
+      _obj[k] = obj[k]
+  }
+  return _obj
+}
 
 function hash (data, enc) {
   return new Blake2s().update(data, enc).digest('base64') + '.blake2s'
@@ -171,3 +180,35 @@ exports.hmac = function (data, key) {
     .update(data).digest('base64')+'.blake2s.hmac'
 }
 
+exports.signObj = function (keys, obj) {
+  var _obj = clone(obj)
+  var str = JSON.stringify(_obj, null, 2)
+  var h = hash(str, 'utf8')
+  _obj.signature = sign(keys, h)
+  return _obj
+}
+
+exports.verifyObj = function (keys, obj) {
+  obj = clone(obj)
+  var sig = obj.signature
+  delete obj.signature
+  var str = JSON.stringify(obj, null, 2)
+  var h = hash(str, 'utf8')
+  return exports.verify(keys, sig, h)
+}
+
+exports.signObjHmac = function (secret, obj) {
+  obj = clone(obj)
+  var str = JSON.stringify(obj, null, 2)
+  obj.hmac = exports.hmac(str, secret)
+  return obj
+}
+
+exports.verifyObjHmac = function (secret, obj) {
+  obj = clone(obj)
+  var hmac = obj.hmac
+  delete obj.hmac
+  var str = JSON.stringify(obj, null, 2)
+  var _hmac = exports.hmac(str, secret)
+  return deepEqual(hmac, _hmac)
+}

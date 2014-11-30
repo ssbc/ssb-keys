@@ -46,7 +46,23 @@ var hash = ssbkeys.hash(new Buffer('deadbeef', 'hex'))
 ssbkeys.isHash(hash) // => true
 
 var sig = ssbkeys.sign(k, hash)
-ssbkeys.verify(k.public, sig, hash)
+ssbkeys.verify(k.public, sig, hash) // => true
 
-ssbkeys.hmac(new Buffer('deadbeef', 'hex'), k.private) // => String
+var secret = new Buffer('deadbeef', 'hex')
+ssbkeys.hmac(secret, k.private) // => String
+
+var obj = ssbkeys.signObj(k, { foo: 'bar' })
+console.log(obj) /* => {
+  foo: 'bar',
+  signature: ...
+} */
+ssbkeys.verifyObj(k, obj) // => true
+
+var secret = new Buffer('deadbeef', 'hex')
+var obj = ssbkeys.signObjHmac(secret, { foo: 'bar' })
+console.log(obj) /* => {
+  foo: 'bar',
+  hmac: ...
+} */
+ssbkeys.verifyObjHmac(secret, obj) // => true
 ```
