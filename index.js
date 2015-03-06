@@ -230,7 +230,7 @@ exports.verifyObjHmac = function (secret, obj) {
 }
 
 exports.createAuth = function (keys, role) {
-  return ssbKeys.signObj(keys, {
+  return exports.signObj(keys, {
     role: role || 'client',
     ts: Date.now(),
     public: keys.public
