@@ -27,6 +27,10 @@ function isHash (data) {
   return isString(data) && /^[A-Za-z0-9\/+]{43}=\.blake2s$/.test(data)
 }
 
+function isObject (o) {
+  return 'object' === typeof o
+}
+
 exports.isHash = isHash
 exports.hash = hash
 
@@ -102,7 +106,14 @@ function tag (key, tag) {
   return key.toString('base64')+'.' + tag.replace(/^\./, '')
 }
 
+var toNameFile = exports.toNameFile = function (namefile) {
+  if(isObject(namefile))
+    return path.join(namefile.path, 'secret')
+  return namefile
+}
+
 exports.load = function(namefile, cb) {
+  namefile = toNameFile(namefile)
   fs.readFile(namefile, 'ascii', function(err, privateKeyStr) {
     if (err) return cb(err)
     try { cb(null, reconstructKeys(privateKeyStr)) }
@@ -111,10 +122,12 @@ exports.load = function(namefile, cb) {
 }
 
 exports.loadSync = function(namefile) {
+  namefile = toNameFile(namefile)
   return reconstructKeys(fs.readFileSync(namefile, 'ascii'))
 }
 
 exports.create = function(namefile, cb) {
+  namefile = toNameFile(namefile)
   var k = constructKeys()
   mkdirp(path.dirname(namefile), function (err) {
     if(err) return cb(err)
@@ -127,6 +140,7 @@ exports.create = function(namefile, cb) {
 }
 
 exports.createSync = function(namefile) {
+  namefile = toNameFile(namefile)
   var k = constructKeys()
   mkdirp.sync(path.dirname(namefile))
   fs.writeFileSync(namefile, k.keyfile)
@@ -135,12 +149,14 @@ exports.createSync = function(namefile) {
 }
 
 exports.loadOrCreate = function (namefile, cb) {
+  namefile = toNameFile(namefile)
   exports.load(namefile, function (err, keys) {
     if(!err) return cb(null, keys)
     exports.create(namefile, cb)
   })
 }
 exports.loadOrCreateSync = function (namefile) {
+  namefile = toNameFile(namefile)
   try {
     return exports.loadSync(namefile)
   } catch (err) {
