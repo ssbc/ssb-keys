@@ -228,3 +228,11 @@ exports.verifyObjHmac = function (secret, obj) {
   var _hmac = exports.hmac(str, secret)
   return deepEqual(hmac, _hmac)
 }
+
+exports.createAuth = function (keys, role) {
+  return ssbKeys.signObj(keys, {
+    role: role || 'client',
+    ts: Date.now(),
+    public: keys.public
+  })
+}
