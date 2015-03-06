@@ -65,4 +65,12 @@ console.log(obj) /* => {
   hmac: ...
 } */
 ssbkeys.verifyObjHmac(secret, obj) // => true
+
+var authRequest = ssbkeys.createAuth(k, 'client') // 'client' is default
+console.log(authRequest) /* => {
+  role: 'client',
+  ts: Number,
+  public: String,
+  signature: ...
+} */
 ```
