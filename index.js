@@ -236,3 +236,7 @@ exports.createAuth = function (keys, role) {
     public: keys.public
   })
 }
+
+exports.createFeed = function (ssb, keys) {
+  return require('./feed')(ssb, keys, exports)
+}
