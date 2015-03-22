@@ -236,3 +236,15 @@ exports.createAuth = function (keys, role) {
     public: keys.public
   })
 }
+
+exports.codec = {
+  decode: function (string) {
+    return JSON.parse(string)
+  },
+  encode: function (obj) {
+    return JSON.stringify(obj, null, 2)
+  },
+  buffer: false
+}
+
+exports.keys = exports
