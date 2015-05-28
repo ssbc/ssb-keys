@@ -1,13 +1,17 @@
 var fs       = require('fs')
 var crypto   = require('crypto')
 var ecc      = require('eccjs')
-var k256     = ecc.curves.k256
+
 var Blake2s  = require('blake2s')
 var mkdirp   = require('mkdirp')
 var path     = require('path')
-var curve    = ecc.curves.k256
+var nacl     = require('ecma-nacl')
+
 var createHmac = require('hmac')
 var deepEqual = require('deep-equal')
+
+var k256 = curve = ecc.curves.k256
+
 
 function clone (obj) {
   var _obj = {}
@@ -21,7 +25,6 @@ function clone (obj) {
 function hash (data, enc) {
   return new Blake2s().update(data, enc).digest('base64') + '.blake2s'
 }
-
 
 function isHash (data) {
   return isString(data) && /^[A-Za-z0-9\/+]{43}=\.blake2s$/.test(data)
@@ -41,9 +44,10 @@ function isString(s) {
 function empty(v) { return !!v }
 
 function constructKeys() {
-  var privateKey = crypto.randomBytes(32)
-  var k          = keysToBase64(ecc.restore(k256, privateKey))
-  k.keyfile      = [
+  var keys = exports.generate()
+  //var privateKey = crypto.randomBytes(32)
+  //var k          = keysToBase64(ecc.restore(k256, privateKey))
+  keys.keyfile      = [
   '# this is your SECRET name.',
   '# this name gives you magical powers.',
   '# with it you can mark your messages so that your friends can verify',
@@ -52,13 +56,13 @@ function constructKeys() {
   '# if any one learns this name, they can use it to destroy your identity',
   '# NEVER show this to anyone!!!',
   '',
-  k.private.toString('hex'),
+  keys.private,
   '',
   '# WARNING! It\'s vital that you DO NOT edit OR share your secret name',
   '# instead, share your public name',
-  '# your public name: ' + k.id.toString('hex')
+  '# your public name: ' + keys.id
   ].join('\n')
-  return k
+  return keys
 }
 
 
@@ -67,11 +71,18 @@ function toBuffer(buf) {
   return new Buffer(buf.substring(0, buf.indexOf('.')), 'base64')
 }
 
+function toUint8(buf) {
+  return new Uint8Array(toBuffer(buf))
+}
+
 function keysToBase64 (keys) {
-  var pub = tag(keys.public, 'k256')
+
+  var pub = tag(new Buffer(keys.public), keys.curve)
   return {
+    curve: keys.curve,
+    type: keys.type,
     public: pub,
-    private: tag(keys.private, 'k256'),
+    private: tag(keys.private, keys.curve),
     id: hash(pub)
   }
 }
@@ -88,21 +99,44 @@ function keysToBuffer(key) {
   }
 }
 
-function reconstructKeys(privateKeyStr) {
-  privateKeyStr = privateKeyStr
+function reconstructKeys(keyfile) {
+  var private = keyfile
     .replace(/\s*\#[^\n]*/g, '')
     .split('\n').filter(empty).join('')
 
-  var privateKey = (
-      !/\./.test(privateKeyStr)
-    ? new Buffer(privateKeyStr, 'hex')
-    : toBuffer(privateKeyStr)
-  )
+  var i = private.indexOf('.')
 
-  return keysToBase64(ecc.restore(k256, privateKey))
+  var curve = private.substring(i+1)
+//  private = private.substring(0, i)
+
+
+//  var privateKey = (
+//      !/\./.test(privateKeyStr)
+//    ? new Buffer(privateKeyStr, 'hex')
+//    : toBuffer(privateKeyStr)
+//  )
+
+
+  if(curve === 'ed25519') {
+    var pub = tag(
+        new Buffer(nacl.signing.extract_pkey(toUint8(private))),
+        curve
+      )
+    return {
+      type: curve === 'ed25519' ? 'nacl' : 'eccjs',
+      curve: curve,
+      private: private,
+      public: pub,
+      id: hash(pub)
+    }
+
+  }
+
+  return keysToBase64(ecc.restore(k256, toBuffer(private)))
 }
 
 function tag (key, tag) {
+  if(!tag) throw new Error('no tag for:' + key.toString('base64'))
   return key.toString('base64')+'.' + tag.replace(/^\./, '')
 }
 
@@ -167,24 +201,75 @@ exports.loadOrCreateSync = function (namefile) {
 //this should return a key pair:
 // {public: Buffer, private: Buffer}
 
-exports.generate = function () {
-  return keysToBase64(ecc.restore(curve, crypto.randomBytes(32)))
+exports.generate = function (curve) {
+  var _keys = nacl.signing.generate_keypair(
+    new Uint8Array(crypto.randomBytes(32))
+  )
+
+  if(!curve) curve = 'ed25519'
+
+  if(curve === 'ed25519')
+    return keysToBase64({
+      type: 'nacl',
+      curve:  'ed25519',
+      public: new Buffer(_keys.pkey),
+      private: new Buffer(_keys.skey),
+    })
+
+  else if(curve === 'k256')
+    return keysToBase64(ecc.restore(curve, crypto.randomBytes(32)))
 }
 
 //takes a public key and a hash and returns a signature.
 //(a signature must be a node buffer)
 exports.sign = function (keys, hash) {
   var hashTag = hash.substring(hash.indexOf('.'))
-  return tag(
-    ecc.sign(curve, keysToBuffer(keys), hashToBuffer(hash)),
-    hashTag + '.k256'
-  )
+
+  if(keys.curve === 'ed25519')
+    return tag(new Buffer(nacl.signing.sign(
+        new Uint8Array(hashToBuffer(hash)),
+        new Uint8Array(toBuffer(keys.private))
+      )),
+      hashTag + '.ed25519'
+    )
+
+  else if(keys.curve === 'k256')
+    return tag(
+      ecc.sign(curve, keysToBuffer(keys), hashToBuffer(hash)),
+      hashTag + '.k256'
+    )
+
+  else
+    throw new Error('unknown keys')
 }
 
 //takes a public key, signature, and a hash
 //and returns true if the signature was valid.
-exports.verify = function (pub, sig, hash) {
-  return ecc.verify(curve, keysToBuffer(pub), toBuffer(sig), hashToBuffer(hash))
+exports.verify = function (keys, sig, hash) {
+  //types all match.
+  var curve = keys.curve
+  if(!keys.curve && isString(keys.public))
+    keys = keys.public
+
+  if(isString(keys))
+    curve = keys.substring(keys.indexOf('.')+1)
+
+  if(curve === 'ed25519') {
+    return nacl.signing.verify(
+        new Uint8Array(toBuffer(sig)),
+        new Uint8Array(hashToBuffer(hash)),
+        new Uint8Array(toBuffer(keys.public || keys))
+    )
+  }
+  else if(keys.curve === 'k256')
+    return ecc.verify(
+      curve,
+      keysToBuffer(keys),
+      toBuffer(sig),
+      hashToBuffer(hash)
+    )
+  else
+    throw new Error('unknown curve:' + JSON.stringify(keys))
 }
 
 function createHash() {
@@ -236,15 +321,3 @@ exports.createAuth = function (keys, role) {
     public: keys.public
   })
 }
-
-exports.codec = {
-  decode: function (string) {
-    return JSON.parse(string)
-  },
-  encode: function (obj) {
-    return JSON.stringify(obj, null, 2)
-  },
-  buffer: false
-}
-
-exports.keys = exports
