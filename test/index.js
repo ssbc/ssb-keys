@@ -26,3 +26,18 @@ tape('create and load sync', function (t) {
   t.equal(k1.public.toString('hex'), k2.public.toString('hex'))
   t.end()
 })
+
+
+tape('sign and verify', function (t) {
+
+  var keys = ssbkeys.generate()
+  var msg = ssbkeys.hash("HELLO THERE?")
+  var sig = ssbkeys.sign(keys, msg)
+  console.log('public', keys.public)
+  console.log('sig', sig)
+  t.ok(sig)
+  t.ok(ssbkeys.verify(keys, sig, msg))
+
+  t.end()
+
+})
