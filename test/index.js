@@ -36,8 +36,39 @@ tape('sign and verify', function (t) {
   console.log('public', keys.public)
   console.log('sig', sig)
   t.ok(sig)
+  t.equal(ssbkeys.getTag(sig), 'blake2s.ed25519')
   t.ok(ssbkeys.verify(keys, sig, msg))
 
+  t.end()
+
+})
+
+tape('sign and verify, call with keys directly', function (t) {
+
+  var keys = ssbkeys.generate()
+  var msg = ssbkeys.hash("HELLO THERE?")
+  var sig = ssbkeys.sign(keys.private, msg)
+  console.log('public', keys.public)
+  console.log('sig', sig)
+  t.ok(sig)
+  t.equal(ssbkeys.getTag(sig), 'blake2s.ed25519')
+  t.ok(ssbkeys.verify(keys.public, sig, msg))
+
+  t.end()
+
+})
+
+tape('sign and verify a javascript object', function (t) {
+
+  var obj = require('../package.json')
+
+  console.log(obj)
+
+  var keys = ssbkeys.generate()
+  var sig = ssbkeys.signObj(keys.private, obj)
+  console.log(sig)
+  t.ok(sig)
+  t.ok(ssbkeys.verifyObj(keys, sig, obj))
   t.end()
 
 })
