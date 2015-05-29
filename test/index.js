@@ -72,3 +72,53 @@ tape('sign and verify a javascript object', function (t) {
   t.end()
 
 })
+
+tape('test legacy curve: k256', function (t) {
+  var keys = ssbkeys.generate('k256')
+
+  var msg = ssbkeys.hash("LEGACY SYSTEMS")
+  var sig = ssbkeys.sign(keys, msg)
+
+  console.log('public', keys.public)
+  console.log('sig', sig)
+
+  t.ok(sig)
+  t.equal(ssbkeys.getTag(sig), 'blake2s.k256')
+  t.ok(ssbkeys.verify(keys, sig, msg))
+
+  t.end()
+})
+
+tape('create and load async, legacy', function (t) {
+  try { require('fs').unlinkSync(path) } catch(e) {}
+  ssbkeys.create(path, 'k256', function(err, k1) {
+    if (err) throw err
+    ssbkeys.load(path, function(err, k2) {
+      if (err) throw err
+
+      t.equal(k2.curve, 'k256')
+      t.equal(k1.id, k2.id)
+      t.equal(k1.private, k2.private)
+      t.equal(k1.public, k2.public)
+
+      t.end()
+    })
+  })
+})
+
+tape('create and load sync, legacy', function (t) {
+  try { require('fs').unlinkSync(path) } catch(e) {}
+  var k1 = ssbkeys.createSync(path, 'k256', true)
+  var k2 = ssbkeys.loadSync(path)
+
+  console.log(k2)
+
+  t.equal(k2.curve, 'k256')
+  t.equal(k1.id, k2.id)
+  t.equal(k1.private, k2.private)
+  t.equal(k1.public, k2.public)
+
+  t.end()
+})
+
+
