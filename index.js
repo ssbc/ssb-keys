@@ -1,17 +1,13 @@
-var fs       = require('fs')
-var crypto   = require('crypto')
-var ecc      = require('eccjs')
+var fs         = require('fs')
+var mkdirp     = require('mkdirp')
+var path       = require('path')
+var deepEqual  = require('deep-equal')
 
-var Blake2s  = require('blake2s')
-var mkdirp   = require('mkdirp')
-var path     = require('path')
-var nacl     = require('ecma-nacl')
-
+var crypto     = require('crypto')
 var createHmac = require('hmac')
-var deepEqual = require('deep-equal')
+var Blake2s    = require('blake2s')
 
-var k256 = curve = ecc.curves.k256
-
+//UTILS
 
 function clone (obj) {
   var _obj = {}
@@ -43,11 +39,43 @@ function isString(s) {
 
 function empty(v) { return !!v }
 
+function toBuffer(buf) {
+  if(buf == null) return buf
+  if(Buffer.isBuffer(buf)) throw new Error('already a buffer')
+  var i = buf.indexOf('.')
+  return new Buffer(buf.substring(0, ~i ? i : buf.length), 'base64')
+}
+
+function toUint8(buf) {
+  return new Uint8Array(toBuffer(buf))
+}
+
+function getTag (string) {
+  var i = string.indexOf('.')
+  return string.substring(i+1)
+}
+
+function tag (key, tag) {
+  if(!tag) throw new Error('no tag for:' + key.toString('base64'))
+  return key.toString('base64')+'.' + tag.replace(/^\./, '')
+}
+
+function keyToJSON(keys, curve) {
+  var pub = keys.public.toString('base64')+'.'+(keys.curve || curve)
+  return {
+    curve: keys.curve,
+    public: pub,
+    private: keys.private ? keys.private.toString('base64') : undefined,
+    id: hash(pub)
+  }
+}
+
+//(DE)SERIALIZE KEYS
+
 function constructKeys() {
   var keys = exports.generate()
-  //var privateKey = crypto.randomBytes(32)
-  //var k          = keysToBase64(ecc.restore(k256, privateKey))
-  keys.keyfile      = [
+
+  keys.keyfile = [
   '# this is your SECRET name.',
   '# this name gives you magical powers.',
   '# with it you can mark your messages so that your friends can verify',
@@ -56,47 +84,14 @@ function constructKeys() {
   '# if any one learns this name, they can use it to destroy your identity',
   '# NEVER show this to anyone!!!',
   '',
-  keys.private,
+  JSON.stringify(keys, null, 2),
   '',
   '# WARNING! It\'s vital that you DO NOT edit OR share your secret name',
   '# instead, share your public name',
   '# your public name: ' + keys.id
   ].join('\n')
+
   return keys
-}
-
-
-function toBuffer(buf) {
-  if(buf == null) return buf
-  return new Buffer(buf.substring(0, buf.indexOf('.')), 'base64')
-}
-
-function toUint8(buf) {
-  return new Uint8Array(toBuffer(buf))
-}
-
-function keysToBase64 (keys) {
-
-  var pub = tag(new Buffer(keys.public), keys.curve)
-  return {
-    curve: keys.curve,
-    type: keys.type,
-    public: pub,
-    private: tag(keys.private, keys.curve),
-    id: hash(pub)
-  }
-}
-
-function hashToBuffer(hash) {
-  if(!isHash(hash)) throw new Error('sign expects a hash')
-  return toBuffer(hash)
-}
-
-function keysToBuffer(key) {
-  return isString(key) ? toBuffer(key) : {
-    public: toBuffer(key.public),
-    private: toBuffer(key.private)
-  }
 }
 
 function reconstructKeys(keyfile) {
@@ -104,40 +99,18 @@ function reconstructKeys(keyfile) {
     .replace(/\s*\#[^\n]*/g, '')
     .split('\n').filter(empty).join('')
 
-  var i = private.indexOf('.')
+  //if the key is in JSON format, we are good.
+  try {
+    return JSON.parse(private)
+  } catch (_) {}
 
-  var curve = private.substring(i+1)
-//  private = private.substring(0, i)
+  //else, reconstruct legacy curve...
 
+  var curve = getTag(private)
+  if(curve !== 'k256')
+    throw new Error('expected legacy curve (k256) but found:' + curve)
 
-//  var privateKey = (
-//      !/\./.test(privateKeyStr)
-//    ? new Buffer(privateKeyStr, 'hex')
-//    : toBuffer(privateKeyStr)
-//  )
-
-
-  if(curve === 'ed25519') {
-    var pub = tag(
-        new Buffer(nacl.signing.extract_pkey(toUint8(private))),
-        curve
-      )
-    return {
-      type: curve === 'ed25519' ? 'nacl' : 'eccjs',
-      curve: curve,
-      private: private,
-      public: pub,
-      id: hash(pub)
-    }
-
-  }
-
-  return keysToBase64(ecc.restore(k256, toBuffer(private)))
-}
-
-function tag (key, tag) {
-  if(!tag) throw new Error('no tag for:' + key.toString('base64'))
-  return key.toString('base64')+'.' + tag.replace(/^\./, '')
+  return keysToJSON(ecc.restore(k256, toBuffer(private)), 'k256')
 }
 
 var toNameFile = exports.toNameFile = function (namefile) {
@@ -189,6 +162,7 @@ exports.loadOrCreate = function (namefile, cb) {
     exports.create(namefile, cb)
   })
 }
+
 exports.loadOrCreateSync = function (namefile) {
   namefile = toNameFile(namefile)
   try {
@@ -198,79 +172,62 @@ exports.loadOrCreateSync = function (namefile) {
   }
 }
 
+
+// DIGITAL SIGNATURES
+
+var curves = {
+  ed25519 : require('./browser-sodium'),
+  k256    : require('./eccjs') //LEGACY
+}
+
+function getCurve(keys) {
+  var curve = keys.curve
+
+  if(!keys.curve && isString(keys.public))
+    keys = keys.public
+
+  if(!curve && isString(keys))
+    curve = getTag(keys)
+
+  if(!curves[curve]) {
+    throw new Error(
+      'unkown curve:' + curve +
+      ' expected: '+Object.keys(curves)
+    )
+  }
+
+  return curves[curve]
+}
+
 //this should return a key pair:
-// {public: Buffer, private: Buffer}
+// {curve: curve, public: Buffer, private: Buffer}
 
 exports.generate = function (curve) {
-  var _keys = nacl.signing.generate_keypair(
-    new Uint8Array(crypto.randomBytes(32))
-  )
-
-  if(!curve) curve = 'ed25519'
-
-  if(curve === 'ed25519')
-    return keysToBase64({
-      type: 'nacl',
-      curve:  'ed25519',
-      public: new Buffer(_keys.pkey),
-      private: new Buffer(_keys.skey),
-    })
-
-  else if(curve === 'k256')
-    return keysToBase64(ecc.restore(curve, crypto.randomBytes(32)))
+  curve = curve || 'ed25519'
+  return keyToJSON(curves[curve].generate(), curve)
 }
 
 //takes a public key and a hash and returns a signature.
 //(a signature must be a node buffer)
+
 exports.sign = function (keys, hash) {
   var hashTag = hash.substring(hash.indexOf('.'))
+  return getCurve(keys)
+    .sign(toBuffer(keys.private), toBuffer(hash)).toString('base64')+'.blake2s.'+keys.curve
 
-  if(keys.curve === 'ed25519')
-    return tag(new Buffer(nacl.signing.sign(
-        new Uint8Array(hashToBuffer(hash)),
-        new Uint8Array(toBuffer(keys.private))
-      )),
-      hashTag + '.ed25519'
-    )
-
-  else if(keys.curve === 'k256')
-    return tag(
-      ecc.sign(curve, keysToBuffer(keys), hashToBuffer(hash)),
-      hashTag + '.k256'
-    )
-
-  else
-    throw new Error('unknown keys')
 }
 
 //takes a public key, signature, and a hash
 //and returns true if the signature was valid.
 exports.verify = function (keys, sig, hash) {
-  //types all match.
-  var curve = keys.curve
-  if(!keys.curve && isString(keys.public))
-    keys = keys.public
-
-  if(isString(keys))
-    curve = keys.substring(keys.indexOf('.')+1)
-
-  if(curve === 'ed25519') {
-    return nacl.signing.verify(
-        new Uint8Array(toBuffer(sig)),
-        new Uint8Array(hashToBuffer(hash)),
-        new Uint8Array(toBuffer(keys.public || keys))
-    )
-  }
-  else if(keys.curve === 'k256')
-    return ecc.verify(
-      curve,
-      keysToBuffer(keys),
-      toBuffer(sig),
-      hashToBuffer(hash)
-    )
-  else
-    throw new Error('unknown curve:' + JSON.stringify(keys))
+  return getCurve(keys).verify(
+    toBuffer(keys.public || keys),
+    toBuffer(sig),
+    toBuffer(hash)
+  )
 }
+
+// OTHER CRYTPO FUNCTIONS
 
 function createHash() {
   return new Blake2s()
