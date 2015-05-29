@@ -8,12 +8,13 @@
     "url": "git://github.com/ssbc/ssb-crypto.git"
   },
   "dependencies": {
-    "eccjs": "git://github.com/dominictarr/eccjs.git#586f6d47507184a2efe84684ed0a30605cbc43a5",
     "blake2s": "~1.0.0",
-    "mkdirp": "~0.5.0",
-    "hmac": "~1.0.1",
     "deep-equal": "~0.2.1",
-    "ecma-nacl": "~2.0.1"
+    "eccjs": "git://github.com/dominictarr/eccjs.git#586f6d47507184a2efe84684ed0a30605cbc43a5",
+    "hmac": "~1.0.1",
+    "libsodium-wrappers": "^0.2.8",
+    "mkdirp": "~0.5.0",
+    "sodium": "^1.0.17"
   },
   "devDependencies": {
     "tape": "~3.0.0"
