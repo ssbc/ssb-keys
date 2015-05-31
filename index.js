@@ -190,7 +190,7 @@ exports.loadOrCreateSync = function (namefile) {
 // DIGITAL SIGNATURES
 
 var curves = {
-  ed25519 : require('./browser-sodium'),
+  ed25519 : require('./sodium'),
   k256    : ecc //LEGACY
 }
 
