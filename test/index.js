@@ -1,6 +1,6 @@
 var tape = require('tape')
 var ssbkeys = require('../')
-
+var crypto = require('crypto')
 var path = require('path').join(__dirname, 'keyfile')
 
 tape('create and load async', function (t) {
@@ -121,4 +121,26 @@ tape('create and load sync, legacy', function (t) {
   t.end()
 })
 
+tape('seeded keys, ed25519', function (t) {
 
+  var seed = crypto.randomBytes(32)
+  var k1 = ssbkeys.generate('ed25519', seed)
+  var k2 = ssbkeys.generate('ed25519', seed)
+
+  t.deepEqual(k1, k2)
+
+  t.end()
+
+})
+
+tape('seeded keys, k256', function (t) {
+
+  var seed = crypto.randomBytes(32)
+  var k1 = ssbkeys.generate('k256', seed)
+  var k2 = ssbkeys.generate('k256', seed)
+
+  t.deepEqual(k1, k2)
+
+  t.end()
+
+})

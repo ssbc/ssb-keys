@@ -9,13 +9,13 @@ module.exports = {
 
   curves: ['k256'],
 
-  generate: function () {
+  generate: function (seed) {
     //we use eccjs.restore here, instead of eccjs.generate
     //because we trust node's random generator much more than
     //sjcl's (via crypto-browserify's polyfil this uses
     //webcrypto's random generator in the browser)
 
-    var keys = ecc.restore(curve, crypto.randomBytes(32))
+    var keys = ecc.restore(curve, seed || crypto.randomBytes(32))
 
     return {
       curve: 'k256',
