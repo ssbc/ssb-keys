@@ -1,13 +1,15 @@
-var fs       = require('fs')
-var crypto   = require('crypto')
-var ecc      = require('eccjs')
-var k256     = ecc.curves.k256
-var Blake2s  = require('blake2s')
-var mkdirp   = require('mkdirp')
-var path     = require('path')
-var curve    = ecc.curves.k256
+var fs         = require('fs')
+var mkdirp     = require('mkdirp')
+var path       = require('path')
+var deepEqual  = require('deep-equal')
+
+var crypto     = require('crypto')
 var createHmac = require('hmac')
-var deepEqual = require('deep-equal')
+var Blake2s    = require('blake2s')
+
+var ecc        = require('./eccjs')
+
+//UTILS
 
 function clone (obj) {
   var _obj = {}
@@ -22,13 +24,16 @@ function hash (data, enc) {
   return new Blake2s().update(data, enc).digest('base64') + '.blake2s'
 }
 
-
 function isHash (data) {
   return isString(data) && /^[A-Za-z0-9\/+]{43}=\.blake2s$/.test(data)
 }
 
 function isObject (o) {
   return 'object' === typeof o
+}
+
+function isFunction (f) {
+  return 'function' === typeof f
 }
 
 exports.isHash = isHash
@@ -40,10 +45,47 @@ function isString(s) {
 
 function empty(v) { return !!v }
 
-function constructKeys() {
-  var privateKey = crypto.randomBytes(32)
-  var k          = keysToBase64(ecc.restore(k256, privateKey))
-  k.keyfile      = [
+function toBuffer(buf) {
+  if(buf == null) return buf
+  if(Buffer.isBuffer(buf)) throw new Error('already a buffer')
+  var i = buf.indexOf('.')
+  return new Buffer(buf.substring(0, ~i ? i : buf.length), 'base64')
+}
+
+function toUint8(buf) {
+  return new Uint8Array(toBuffer(buf))
+}
+
+function getTag (string) {
+  var i = string.indexOf('.')
+  return string.substring(i+1)
+}
+
+exports.getTag = getTag
+
+function tag (key, tag) {
+  if(!tag) throw new Error('no tag for:' + key.toString('base64'))
+  return key.toString('base64')+'.' + tag.replace(/^\./, '')
+}
+
+function keysToJSON(keys, curve) {
+  curve = (keys.curve || curve)
+
+  var pub = tag(keys.public.toString('base64'), curve)
+  return {
+    curve: curve,
+    public: pub,
+    private: keys.private ? tag(keys.private.toString('base64'), curve) : undefined,
+    id: hash(pub)
+  }
+}
+
+//(DE)SERIALIZE KEYS
+
+function constructKeys(keys, legacy) {
+  if(!keys) throw new Error('*must* pass in keys') 
+
+  return [
   '# this is your SECRET name.',
   '# this name gives you magical powers.',
   '# with it you can mark your messages so that your friends can verify',
@@ -52,58 +94,32 @@ function constructKeys() {
   '# if any one learns this name, they can use it to destroy your identity',
   '# NEVER show this to anyone!!!',
   '',
-  k.private.toString('hex'),
+  legacy ? keys.private : JSON.stringify(keys, null, 2),
   '',
   '# WARNING! It\'s vital that you DO NOT edit OR share your secret name',
   '# instead, share your public name',
-  '# your public name: ' + k.id.toString('hex')
+  '# your public name: ' + keys.id
   ].join('\n')
-  return k
 }
 
-
-function toBuffer(buf) {
-  if(buf == null) return buf
-  return new Buffer(buf.substring(0, buf.indexOf('.')), 'base64')
-}
-
-function keysToBase64 (keys) {
-  var pub = tag(keys.public, 'k256')
-  return {
-    public: pub,
-    private: tag(keys.private, 'k256'),
-    id: hash(pub)
-  }
-}
-
-function hashToBuffer(hash) {
-  if(!isHash(hash)) throw new Error('sign expects a hash')
-  return toBuffer(hash)
-}
-
-function keysToBuffer(key) {
-  return isString(key) ? toBuffer(key) : {
-    public: toBuffer(key.public),
-    private: toBuffer(key.private)
-  }
-}
-
-function reconstructKeys(privateKeyStr) {
-  privateKeyStr = privateKeyStr
+function reconstructKeys(keyfile) {
+  var private = keyfile
     .replace(/\s*\#[^\n]*/g, '')
     .split('\n').filter(empty).join('')
 
-  var privateKey = (
-      !/\./.test(privateKeyStr)
-    ? new Buffer(privateKeyStr, 'hex')
-    : toBuffer(privateKeyStr)
-  )
+  //if the key is in JSON format, we are good.
+  try {
+    return JSON.parse(private)
+  } catch (_) {}
 
-  return keysToBase64(ecc.restore(k256, privateKey))
-}
+  //else, reconstruct legacy curve...
 
-function tag (key, tag) {
-  return key.toString('base64')+'.' + tag.replace(/^\./, '')
+  var curve = getTag(private)
+
+  if(curve !== 'k256')
+    throw new Error('expected legacy curve (k256) but found:' + curve)
+
+  return keysToJSON(ecc.restore(toBuffer(private)), 'k256')
 }
 
 var toNameFile = exports.toNameFile = function (namefile) {
@@ -126,26 +142,31 @@ exports.loadSync = function(namefile) {
   return reconstructKeys(fs.readFileSync(namefile, 'ascii'))
 }
 
-exports.create = function(namefile, cb) {
+exports.create = function(namefile, curve, legacy, cb) {
+  if(isFunction(legacy))
+    cb = legacy, legacy = null
+  if(isFunction(curve))
+    cb = curve, curve = null
+
   namefile = toNameFile(namefile)
-  var k = constructKeys()
+  var keys = exports.generate(curve)
+  var keyfile = constructKeys(keys, legacy)
   mkdirp(path.dirname(namefile), function (err) {
     if(err) return cb(err)
-    fs.writeFile(namefile, k.keyfile, function(err) {
+    fs.writeFile(namefile, keyfile, function(err) {
       if (err) return cb(err)
-      delete k.keyfile
-      cb(null, k)
+      cb(null, keys)
     })
   })
 }
 
-exports.createSync = function(namefile) {
+exports.createSync = function(namefile, curve, legacy) {
   namefile = toNameFile(namefile)
-  var k = constructKeys()
+  var keys = exports.generate(curve)
+  var keyfile = constructKeys(keys, legacy)
   mkdirp.sync(path.dirname(namefile))
-  fs.writeFileSync(namefile, k.keyfile)
-  delete k.keyfile
-  return k
+  fs.writeFileSync(namefile, keyfile)
+  return keys
 }
 
 exports.loadOrCreate = function (namefile, cb) {
@@ -155,6 +176,7 @@ exports.loadOrCreate = function (namefile, cb) {
     exports.create(namefile, cb)
   })
 }
+
 exports.loadOrCreateSync = function (namefile) {
   namefile = toNameFile(namefile)
   try {
@@ -164,28 +186,73 @@ exports.loadOrCreateSync = function (namefile) {
   }
 }
 
-//this should return a key pair:
-// {public: Buffer, private: Buffer}
 
-exports.generate = function () {
-  return keysToBase64(ecc.restore(curve, crypto.randomBytes(32)))
+// DIGITAL SIGNATURES
+
+var curves = {
+  ed25519 : require('./sodium'),
+  k256    : ecc //LEGACY
+}
+
+function getCurve(keys) {
+  var curve = keys.curve
+
+  if(!keys.curve && isString(keys.public))
+    keys = keys.public
+
+  if(!curve && isString(keys))
+    curve = getTag(keys)
+
+  if(!curves[curve]) {
+    throw new Error(
+      'unkown curve:' + curve +
+      ' expected: '+Object.keys(curves)
+    )
+  }
+
+  return curve
+}
+
+//this should return a key pair:
+// {curve: curve, public: Buffer, private: Buffer}
+
+exports.generate = function (curve, seed) {
+  curve = curve || 'ed25519'
+
+  if(!curves[curve])
+    throw new Error('unknown curve:'+curve)
+
+  return keysToJSON(curves[curve].generate(seed), curve)
 }
 
 //takes a public key and a hash and returns a signature.
 //(a signature must be a node buffer)
+
 exports.sign = function (keys, hash) {
+  if(isObject(hash))
+    throw new Error('hash should be base64 string, did you mean signObj(private, unsigned_obj)')
   var hashTag = hash.substring(hash.indexOf('.'))
-  return tag(
-    ecc.sign(curve, keysToBuffer(keys), hashToBuffer(hash)),
-    hashTag + '.k256'
-  )
+  var curve = getCurve(keys)
+
+  return curves[curve]
+    .sign(toBuffer(keys.private || keys), toBuffer(hash))
+    .toString('base64')+'.blake2s.'+curve
+
 }
 
 //takes a public key, signature, and a hash
 //and returns true if the signature was valid.
-exports.verify = function (pub, sig, hash) {
-  return ecc.verify(curve, keysToBuffer(pub), toBuffer(sig), hashToBuffer(hash))
+exports.verify = function (keys, sig, hash) {
+  if(isObject(sig))
+    throw new Error('signature should be base64 string, did you mean verifyObj(public, signed_obj)')
+  return curves[getCurve(keys)].verify(
+    toBuffer(keys.public || keys),
+    toBuffer(sig),
+    toBuffer(hash)
+  )
 }
+
+// OTHER CRYTPO FUNCTIONS
 
 function createHash() {
   return new Blake2s()
@@ -213,6 +280,8 @@ exports.verifyObj = function (keys, obj) {
   return exports.verify(keys, sig, h)
 }
 
+//TODO: remove these (use asymmetric auth for everything)
+
 exports.signObjHmac = function (secret, obj) {
   obj = clone(obj)
   var str = JSON.stringify(obj, null, 2)
@@ -237,14 +306,3 @@ exports.createAuth = function (keys, role) {
   })
 }
 
-exports.codec = {
-  decode: function (string) {
-    return JSON.parse(string)
-  },
-  encode: function (obj) {
-    return JSON.stringify(obj, null, 2)
-  },
-  buffer: false
-}
-
-exports.keys = exports
