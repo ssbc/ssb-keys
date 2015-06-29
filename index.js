@@ -28,6 +28,11 @@ function isHash (data) {
   return isString(data) && /^[A-Za-z0-9\/+]{43}=\.blake2s$/.test(data)
 }
 
+function isId (data) {
+  return isString(data) && /^[A-Za-z0-9\/+]{43}=\.(?:ed25519|blake2s)$/.test(data)
+}
+
+
 function isObject (o) {
   return 'object' === typeof o
 }
@@ -38,6 +43,9 @@ function isFunction (f) {
 
 exports.isHash = isHash
 exports.hash = hash
+
+exports.isId = isId
+exports.isIdentity = isId
 
 function isString(s) {
   return 'string' === typeof s
@@ -76,7 +84,7 @@ function keysToJSON(keys, curve) {
     curve: curve,
     public: pub,
     private: keys.private ? tag(keys.private.toString('base64'), curve) : undefined,
-    id: hash(pub)
+    id: curve === 'ed25519' ? pub : hash(pub)
   }
 }
 
@@ -282,27 +290,28 @@ exports.verifyObj = function (keys, obj) {
 
 //TODO: remove these (use asymmetric auth for everything)
 
-exports.signObjHmac = function (secret, obj) {
-  obj = clone(obj)
-  var str = JSON.stringify(obj, null, 2)
-  obj.hmac = exports.hmac(str, secret)
-  return obj
-}
-
-exports.verifyObjHmac = function (secret, obj) {
-  obj = clone(obj)
-  var hmac = obj.hmac
-  delete obj.hmac
-  var str = JSON.stringify(obj, null, 2)
-  var _hmac = exports.hmac(str, secret)
-  return deepEqual(hmac, _hmac)
-}
-
-exports.createAuth = function (keys, role) {
-  return exports.signObj(keys, {
-    role: role || 'client',
-    ts: Date.now(),
-    public: keys.public
-  })
-}
+//exports.signObjHmac = function (secret, obj) {
+//  obj = clone(obj)
+//  var str = JSON.stringify(obj, null, 2)
+//  obj.hmac = exports.hmac(str, secret)
+//  return obj
+//}
+//
+//exports.verifyObjHmac = function (secret, obj) {
+//  obj = clone(obj)
+//  var hmac = obj.hmac
+//  delete obj.hmac
+//  var str = JSON.stringify(obj, null, 2)
+//  var _hmac = exports.hmac(str, secret)
+//  return deepEqual(hmac, _hmac)
+//}
+//
+//exports.createAuth = function (keys, role) {
+//  return exports.signObj(keys, {
+//    role: role || 'client',
+//    ts: Date.now(),
+//    public: keys.public
+//  })
+//}
+//
 
