@@ -1,7 +1,7 @@
 {
   "name": "ssb-keys",
   "description": "keyfile operations for ssb",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "homepage": "https://github.com/ssbc/ssb-keys",
   "repository": {
     "type": "git",
@@ -14,7 +14,8 @@
     "hmac": "~1.0.1",
     "libsodium-wrappers": "^0.2.8",
     "mkdirp": "~0.5.0",
-    "sodium": "^1.0.17"
+    "sodium": "^1.0.17",
+    "ssb-ref": "~0.0.0"
   },
   "devDependencies": {
     "tape": "~3.0.0"
