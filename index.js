@@ -8,6 +8,7 @@ var createHmac = require('hmac')
 var Blake2s    = require('blake2s')
 
 var ecc        = require('./eccjs')
+var isRef      = require('ssb-ref')
 
 //UTILS
 
@@ -24,14 +25,12 @@ function hash (data, enc) {
   return new Blake2s().update(data, enc).digest('base64') + '.blake2s'
 }
 
-function isHash (data) {
-  return isString(data) && /^[A-Za-z0-9\/+]{43}=\.blake2s$/.test(data)
-}
 
-function isId (data) {
-  return isString(data) && /^[A-Za-z0-9\/+]{43}=\.(?:ed25519|blake2s)$/.test(data)
-}
+var isHash = isRef.isHash
+var isFeedId = isRef.isFeedId
 
+exports.hash = hash
+exports.isHash = isHash
 
 function isObject (o) {
   return 'object' === typeof o
@@ -40,12 +39,6 @@ function isObject (o) {
 function isFunction (f) {
   return 'function' === typeof f
 }
-
-exports.isHash = isHash
-exports.hash = hash
-
-exports.isId = isId
-exports.isIdentity = isId
 
 function isString(s) {
   return 'string' === typeof s
