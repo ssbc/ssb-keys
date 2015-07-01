@@ -14,11 +14,12 @@
     "hmac": "~1.0.1",
     "libsodium-wrappers": "^0.2.8",
     "mkdirp": "~0.5.0",
-    "sodium": "^1.0.17",
+    "private-box": "0.0.0",
+    "sodium": "git://github.com/dominictarr/node-sodium.git",
     "ssb-ref": "~0.0.0"
   },
   "devDependencies": {
-    "tape": "~3.0.0"
+    "tape": "^3.0.3"
   },
   "browser": {
     "./sodium": "./browser-sodium"
