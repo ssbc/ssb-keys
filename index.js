@@ -8,7 +8,10 @@ var createHmac = require('hmac')
 var Blake2s    = require('blake2s')
 
 var ecc        = require('./eccjs')
+var sodium     = require('sodium').api
 var isRef      = require('ssb-ref')
+
+var pb         = require('private-box')
 
 //UTILS
 
@@ -306,5 +309,25 @@ exports.verifyObj = function (keys, obj) {
 //    public: keys.public
 //  })
 //}
-//
 
+exports.box = function (msg, recipients) {
+  msg = new Buffer(JSON.stringify(msg))
+
+  recipients = recipients.map(function (keys) {
+    var public = keys.public || keys
+    return sodium.crypto_sign_ed25519_pk_to_curve25519(toBuffer(public))
+  })
+
+  //it's since the nonce is 24 bytes (a multiple of 3)
+  //it's possible to concatenate the base64 strings
+  //and still have a valid base64 string.
+  return pb.multibox(msg, recipients).toString('base64')+'.box'
+}
+
+exports.unbox = function (boxed, keys) {
+  boxed = toBuffer(boxed)
+  var sk = sodium.crypto_sign_ed25519_sk_to_curve25519(toBuffer(keys.private || keys))
+
+  var msg = pb.multibox_open(boxed, sk)
+  if(msg) return JSON.parse(''+msg)
+}
