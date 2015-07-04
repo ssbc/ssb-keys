@@ -5,7 +5,6 @@ var deepEqual  = require('deep-equal')
 
 var crypto     = require('crypto')
 var createHmac = require('hmac')
-var Blake2s    = require('blake2s')
 
 var ecc        = require('./eccjs')
 var sodium     = require('sodium').api
@@ -25,7 +24,7 @@ function clone (obj) {
 }
 
 function hash (data, enc) {
-  return new Blake2s().update(data, enc).digest('base64') + '.blake2s'
+  return crypto.createHash('sha256').update(data,enc).digest('base64')+'.sha256'
 }
 
 
@@ -240,7 +239,7 @@ exports.sign = function (keys, hash) {
 
   return curves[curve]
     .sign(toBuffer(keys.private || keys), toBuffer(hash))
-    .toString('base64')+'.blake2s.'+curve
+    .toString('base64')+'.sha256.'+curve
 
 }
 
@@ -258,13 +257,9 @@ exports.verify = function (keys, sig, hash) {
 
 // OTHER CRYTPO FUNCTIONS
 
-function createHash() {
-  return new Blake2s()
-}
-
 exports.hmac = function (data, key) {
   return createHmac(createHash, 64, key)
-    .update(data).digest('base64')+'.blake2s.hmac'
+    .update(data).digest('base64')+'.sha256.hmac'
 }
 
 exports.signObj = function (keys, obj) {
