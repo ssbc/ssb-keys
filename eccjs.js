@@ -2,8 +2,13 @@
 
 var ecc = require('eccjs')
 var crypto = require('crypto')
+var Blake2s = require('blake2s')
 
 var curve = ecc.curves.k256
+
+function hash (message) {
+  return new Blake2s().update(message).digest()
+}
 
 module.exports = {
 
@@ -25,11 +30,11 @@ module.exports = {
   },
 
   sign: function (private, message) {
-    return ecc.sign(curve, private, message)
+    return ecc.sign(curve, private, hash(message))
   },
 
   verify: function (public, sig, message) {
-    return ecc.verify(curve, public, sig, message)
+    return ecc.verify(curve, public, sig, hash(message))
   },
 
   restore: function (seed) {
