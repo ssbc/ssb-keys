@@ -12,6 +12,11 @@ var isRef      = require('ssb-ref')
 
 var pb         = require('private-box')
 
+var isBuffer = Buffer.isBuffer
+
+function isString (s) {
+  return 'string' === typeof s
+}
 //UTILS
 
 function clone (obj) {
@@ -231,27 +236,28 @@ exports.generate = function (curve, seed) {
 //takes a public key and a hash and returns a signature.
 //(a signature must be a node buffer)
 
-exports.sign = function (keys, hash) {
-  if(isObject(hash))
-    throw new Error('hash should be base64 string, did you mean signObj(private, unsigned_obj)')
-  var hashTag = hash.substring(hash.indexOf('.'))
+exports.sign = function (keys, msg) {
+  if(isString(msg))
+    msg = new Buffer(msg)
+  if(!isBuffer(msg))
+    throw new Error('msg should be buffer')
   var curve = getCurve(keys)
 
   return curves[curve]
-    .sign(toBuffer(keys.private || keys), toBuffer(hash))
-    .toString('base64')+'.sha256.'+curve
+    .sign(toBuffer(keys.private || keys), msg)
+    .toString('base64')+'.sig.'+curve
 
 }
 
 //takes a public key, signature, and a hash
 //and returns true if the signature was valid.
-exports.verify = function (keys, sig, hash) {
+exports.verify = function (keys, sig, msg) {
   if(isObject(sig))
     throw new Error('signature should be base64 string, did you mean verifyObj(public, signed_obj)')
   return curves[getCurve(keys)].verify(
     toBuffer(keys.public || keys),
     toBuffer(sig),
-    toBuffer(hash)
+    isBuffer(msg) ? msg : new Buffer(msg)
   )
 }
 
@@ -264,9 +270,8 @@ exports.hmac = function (data, key) {
 
 exports.signObj = function (keys, obj) {
   var _obj = clone(obj)
-  var str = JSON.stringify(_obj, null, 2)
-  var h = hash(str, 'utf8')
-  _obj.signature = exports.sign(keys, h)
+  var b = new Buffer(JSON.stringify(_obj, null, 2))
+  _obj.signature = exports.sign(keys, b)
   return _obj
 }
 
@@ -274,36 +279,9 @@ exports.verifyObj = function (keys, obj) {
   obj = clone(obj)
   var sig = obj.signature
   delete obj.signature
-  var str = JSON.stringify(obj, null, 2)
-  var h = hash(str, 'utf8')
-  return exports.verify(keys, sig, h)
+  var b = new Buffer(JSON.stringify(obj, null, 2))
+  return exports.verify(keys, sig, b)
 }
-
-//TODO: remove these (use asymmetric auth for everything)
-
-//exports.signObjHmac = function (secret, obj) {
-//  obj = clone(obj)
-//  var str = JSON.stringify(obj, null, 2)
-//  obj.hmac = exports.hmac(str, secret)
-//  return obj
-//}
-//
-//exports.verifyObjHmac = function (secret, obj) {
-//  obj = clone(obj)
-//  var hmac = obj.hmac
-//  delete obj.hmac
-//  var str = JSON.stringify(obj, null, 2)
-//  var _hmac = exports.hmac(str, secret)
-//  return deepEqual(hmac, _hmac)
-//}
-//
-//exports.createAuth = function (keys, role) {
-//  return exports.signObj(keys, {
-//    role: role || 'client',
-//    ts: Date.now(),
-//    public: keys.public
-//  })
-//}
 
 exports.box = function (msg, recipients) {
   msg = new Buffer(JSON.stringify(msg))
