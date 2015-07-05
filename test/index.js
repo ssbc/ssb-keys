@@ -36,7 +36,7 @@ tape('sign and verify', function (t) {
   console.log('public', keys.public)
   console.log('sig', sig)
   t.ok(sig)
-  t.equal(ssbkeys.getTag(sig), 'sha256.ed25519')
+  t.equal(ssbkeys.getTag(sig), 'sig.ed25519')
   t.ok(ssbkeys.verify(keys, sig, msg))
 
   t.end()
@@ -51,7 +51,7 @@ tape('sign and verify, call with keys directly', function (t) {
   console.log('public', keys.public)
   console.log('sig', sig)
   t.ok(sig)
-  t.equal(ssbkeys.getTag(sig), 'sha256.ed25519')
+  t.equal(ssbkeys.getTag(sig), 'sig.ed25519')
   t.ok(ssbkeys.verify(keys.public, sig, msg))
 
   t.end()
@@ -83,7 +83,7 @@ tape('test legacy curve: k256', function (t) {
   console.log('sig', sig)
 
   t.ok(sig)
-  t.equal(ssbkeys.getTag(sig), 'sha256.k256')
+  t.equal(ssbkeys.getTag(sig), 'sig.k256')
   t.ok(ssbkeys.verify(keys, sig, msg))
 
   t.end()
