@@ -8,7 +8,7 @@ var createHmac = require('hmac')
 
 var ecc        = require('./eccjs')
 var sodium     = require('sodium').api
-var isRef      = require('ssb-ref')
+var ssbref     = require('ssb-ref')
 
 var pb         = require('private-box')
 
@@ -32,12 +32,10 @@ function hash (data, enc) {
   return crypto.createHash('sha256').update(data,enc).digest('base64')+'.sha256'
 }
 
-
-var isHash = isRef.isHash
-var isFeedId = isRef.isFeedId
+var isLink = ssbref.isLink
+var isFeedId = ssbref.isFeedId
 
 exports.hash = hash
-exports.isHash = isHash
 
 function isObject (o) {
   return 'object' === typeof o
@@ -51,13 +49,18 @@ function isString(s) {
   return 'string' === typeof s
 }
 
+function hasSigil (s) {
+  return /^(@|%|&)/.test(s)
+}
+
 function empty(v) { return !!v }
 
 function toBuffer(buf) {
   if(buf == null) return buf
   if(Buffer.isBuffer(buf)) throw new Error('already a buffer')
   var i = buf.indexOf('.')
-  return new Buffer(buf.substring(0, ~i ? i : buf.length), 'base64')
+  var start = (hasSigil(buf)) ? 1 : 0
+  return new Buffer(buf.substring(start, ~i ? i : buf.length), 'base64')
 }
 
 function toUint8(buf) {
@@ -84,7 +87,7 @@ function keysToJSON(keys, curve) {
     curve: curve,
     public: pub,
     private: keys.private ? tag(keys.private.toString('base64'), curve) : undefined,
-    id: curve === 'ed25519' ? pub : hash(pub)
+    id: '@'+(curve === 'ed25519' ? pub : hash(pub))
   }
 }
 
