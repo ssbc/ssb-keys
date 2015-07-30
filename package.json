@@ -14,7 +14,7 @@
     "hmac": "~1.0.1",
     "mkdirp": "~0.5.0",
     "private-box": "0.0.0",
-    "sodium": "git://github.com/dominictarr/node-sodium.git",
+    "sodium": "git://github.com/dominictarr/node-sodium.git#0fade334a8c67b6267a5e66f944199b74927713a",
     "ssb-ref": "^2.0.0"
   },
   "devDependencies": {
