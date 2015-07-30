@@ -145,10 +145,10 @@ tape('seeded keys, k256', function (t) {
 
 })
 
-tape('ed25519 id === pubkey', function (t) {
+tape('ed25519 id === "@" ++ pubkey', function (t) {
 
   var keys = ssbkeys.generate('ed25519')
-  t.equal(keys.id, keys.public)
+  t.equal(keys.id, '@' + keys.public)
 
   t.end()
 
