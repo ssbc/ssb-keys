@@ -1,5 +1,5 @@
 
-var sodium = require('sodium').api
+var sodium = require('chloride').api
 var crypto = require('crypto')
 
 module.exports = {

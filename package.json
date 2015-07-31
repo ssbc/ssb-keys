@@ -9,12 +9,12 @@
   },
   "dependencies": {
     "blake2s": "~1.0.0",
+    "chloride": "^1.0.20-1",
     "deep-equal": "~0.2.1",
     "eccjs": "git://github.com/dominictarr/eccjs.git#586f6d47507184a2efe84684ed0a30605cbc43a5",
     "hmac": "~1.0.1",
     "mkdirp": "~0.5.0",
-    "private-box": "0.0.0",
-    "sodium": "git://github.com/dominictarr/node-sodium.git#0fade334a8c67b6267a5e66f944199b74927713a",
+    "private-box": "0.0.2",
     "ssb-ref": "^2.0.0"
   },
   "devDependencies": {
