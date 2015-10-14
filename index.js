@@ -120,7 +120,10 @@ function reconstructKeys(keyfile) {
 
   //if the key is in JSON format, we are good.
   try {
-    return JSON.parse(private)
+    var keys = JSON.parse(private)
+    console.log(keys)
+    if(!hasSigil(keys.id)) keys.id = '@' + keys.public
+    return keys
   } catch (_) {}
 
   //else, reconstruct legacy curve...
