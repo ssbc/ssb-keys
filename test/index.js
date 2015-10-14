@@ -2,9 +2,10 @@ var tape = require('tape')
 var ssbkeys = require('../')
 var crypto = require('crypto')
 var path = require('path').join(__dirname, 'keyfile')
+var fs = require('fs')
 
 tape('create and load async', function (t) {
-  try { require('fs').unlinkSync(path) } catch(e) {}
+  try { fs.unlinkSync(path) } catch(e) {}
   ssbkeys.create(path, function(err, k1) {
     if (err) throw err
     ssbkeys.load(path, function(err, k2) {
@@ -18,7 +19,7 @@ tape('create and load async', function (t) {
 })
 
 tape('create and load sync', function (t) {
-  try { require('fs').unlinkSync(path) } catch(e) {}
+  try { fs.unlinkSync(path) } catch(e) {}
   var k1 = ssbkeys.createSync(path)
   var k2 = ssbkeys.loadSync(path)
   t.equal(k1.id.toString('hex'), k2.id.toString('hex'))
@@ -90,7 +91,7 @@ tape('test legacy curve: k256', function (t) {
 })
 
 tape('create and load async, legacy', function (t) {
-  try { require('fs').unlinkSync(path) } catch(e) {}
+  try { fs.unlinkSync(path) } catch(e) {}
   ssbkeys.create(path, 'k256', function(err, k1) {
     if (err) throw err
     ssbkeys.load(path, function(err, k2) {
@@ -107,7 +108,7 @@ tape('create and load async, legacy', function (t) {
 })
 
 tape('create and load sync, legacy', function (t) {
-  try { require('fs').unlinkSync(path) } catch(e) {}
+  try { fs.unlinkSync(path) } catch(e) {}
   var k1 = ssbkeys.createSync(path, 'k256', true)
   var k2 = ssbkeys.loadSync(path)
 
@@ -151,5 +152,32 @@ tape('ed25519 id === "@" ++ pubkey', function (t) {
   t.equal(keys.id, '@' + keys.public)
 
   t.end()
+
+})
+
+tape('create and load presigil-legacy async', function (t) {
+  try { fs.unlinkSync(path) } catch(e) {}
+  var keys = ssbkeys.generate('ed25519')
+  keys.id = keys.id.substring(1)
+  fs.writeFileSync(path, JSON.stringify(keys))
+
+  var k2 = ssbkeys.loadSync(path)
+  t.equal(k2.id, '@' + keys.id)
+  t.end()
+
+})
+
+tape('create and load presigil-legacy', function (t) {
+
+  try { fs.unlinkSync(path) } catch(e) {}
+  var keys = ssbkeys.generate('ed25519')
+  keys.id = keys.id.substring(1)
+  fs.writeFileSync(path, JSON.stringify(keys))
+
+  ssbkeys.load(path, function (err, k2) {
+    if(err) throw err
+    t.equal(k2.id, '@' + keys.id)
+    t.end()
+  })
 
 })
