@@ -7,7 +7,7 @@ var crypto     = require('crypto')
 var createHmac = require('hmac')
 
 var ecc        = require('./eccjs')
-var sodium     = require('chloride').api
+var sodium     = require('chloride')
 var ssbref     = require('ssb-ref')
 
 var pb         = require('private-box')
