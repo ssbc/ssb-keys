@@ -1,7 +1,7 @@
 {
   "name": "ssb-keys",
   "description": "keyfile operations for ssb",
-  "version": "4.0.6",
+  "version": "4.0.7",
   "homepage": "https://github.com/ssbc/ssb-keys",
   "repository": {
     "type": "git",
