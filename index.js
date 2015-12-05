@@ -121,7 +121,6 @@ function reconstructKeys(keyfile) {
   //if the key is in JSON format, we are good.
   try {
     var keys = JSON.parse(private)
-    console.log(keys)
     if(!hasSigil(keys.id)) keys.id = '@' + keys.public
     return keys
   } catch (_) {}
