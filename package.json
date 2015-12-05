@@ -20,9 +20,6 @@
   "devDependencies": {
     "tape": "^3.0.3"
   },
-  "browser": {
-    "./sodium": "./browser-sodium"
-  },
   "scripts": {
     "test": "set -e; for t in test/*.js; do node $t; done"
   },
