@@ -6,7 +6,6 @@ var deepEqual  = require('deep-equal')
 var crypto     = require('crypto')
 var createHmac = require('hmac')
 
-var ecc        = require('./eccjs')
 var sodium     = require('chloride')
 var ssbref     = require('ssb-ref')
 
@@ -132,6 +131,8 @@ function reconstructKeys(keyfile) {
   if(curve !== 'k256')
     throw new Error('expected legacy curve (k256) but found:' + curve)
 
+  var ecc = require('./eccjs')
+
   return keysToJSON(ecc.restore(toBuffer(private)), 'k256')
 }
 
@@ -202,10 +203,10 @@ exports.loadOrCreateSync = function (namefile) {
 
 // DIGITAL SIGNATURES
 
-var curves = {
-  ed25519 : require('./sodium'),
-  k256    : ecc //LEGACY
-}
+var curves = {}
+curves.ed25519 = require('./sodium')
+try { curves.k256 = require('./eccjs') }
+catch (_) {}
 
 function getCurve(keys) {
   var curve = keys.curve
@@ -309,3 +310,5 @@ exports.unbox = function (boxed, keys) {
   var msg = pb.multibox_open(boxed, sk)
   if(msg) return JSON.parse(''+msg)
 }
+
+
