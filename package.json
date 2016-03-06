@@ -1,7 +1,7 @@
 {
   "name": "ssb-keys",
   "description": "keyfile operations for ssb",
-  "version": "4.0.10",
+  "version": "5.0.0",
   "homepage": "https://github.com/ssbc/ssb-keys",
   "repository": {
     "type": "git",
@@ -26,4 +26,3 @@
   "author": "Paul Frazee <pfrazee@gmail.com>",
   "license": "MIT"
 }
-
