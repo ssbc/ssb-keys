@@ -28,7 +28,12 @@ function clone (obj) {
 }
 
 function hash (data, enc) {
-  return crypto.createHash('sha256').update(data,enc).digest('base64')+'.sha256'
+  data = (
+    'string' === typeof data && enc == null
+  ? new Buffer(data, 'binary')
+  : new Buffer(data, enc)
+  )
+  return crypto.createHash('sha256').update(data).digest('base64')+'.sha256'
 }
 
 var isLink = ssbref.isLink
