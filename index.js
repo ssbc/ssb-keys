@@ -124,6 +124,23 @@ exports.generate = function (curve, seed) {
 var FS = require('./fs')(exports.generate)
 for(var key in FS) exports[key] = FS[key]
 
+
+exports.loadOrCreate = function (filename, cb) {
+  exports.load(filename, function (err, keys) {
+    if(!err) return cb(null, keys)
+    exports.create(filename, cb)
+  })
+}
+
+exports.loadOrCreateSync = function (namefile) {
+  try {
+    return exports.loadSync(filename)
+  } catch (err) {
+    return exports.createSync(filename)
+  }
+}
+
+
 //takes a public key and a hash and returns a signature.
 //(a signature must be a node buffer)
 
@@ -195,6 +212,8 @@ exports.unbox = function (boxed, keys) {
   var msg = pb.multibox_open(boxed, sk)
   if(msg) return JSON.parse(''+msg)
 }
+
+
 
 
 

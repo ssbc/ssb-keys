@@ -13,6 +13,10 @@ function isFunction (f) {
 
 function empty(v) { return !!v }
 
+function toFile (s) {
+  if('object' == typeof s && s.path)
+    return path.join(s.path, 'secret')
+}
 module.exports = function (generate) {
 
   var exports = {}
@@ -64,15 +68,15 @@ module.exports = function (generate) {
     return keysToJSON(ecc.restore(toBuffer(private)), 'k256')
   }
 
-  var toNameFile = exports.toNameFile = function (namefile) {
-    if(isObject(namefile))
-      return path.join(namefile.path, 'secret')
-    return namefile
+  function toFile (filename) {
+    if(isObject(filename))
+      return path.join(filename.path, 'secret')
+    return filename
   }
 
-  exports.load = function(namefile, cb) {
-    namefile = toNameFile(namefile)
-    fs.readFile(namefile, 'ascii', function(err, privateKeyStr) {
+  exports.load = function(filename, cb) {
+    filename = toFile(filename, 'secret')
+    fs.readFile(filename, 'ascii', function(err, privateKeyStr) {
       if (err) return cb(err)
       var keys
       try { keys = reconstructKeys(privateKeyStr) }
@@ -81,54 +85,36 @@ module.exports = function (generate) {
     })
   }
 
-  exports.loadSync = function(namefile) {
-    namefile = toNameFile(namefile)
-    return reconstructKeys(fs.readFileSync(namefile, 'ascii'))
+  exports.loadSync = function(filename) {
+    filename = toFile(filename, 'secret')
+    return reconstructKeys(fs.readFileSync(filename, 'ascii'))
   }
 
-  exports.create = function(namefile, curve, legacy, cb) {
+  exports.create = function(filename, curve, legacy, cb) {
     if(isFunction(legacy))
       cb = legacy, legacy = null
     if(isFunction(curve))
       cb = curve, curve = null
 
-    namefile = toNameFile(namefile)
+    filename = toFile(filename, 'secret')
     var keys = generate(curve)
     var keyfile = constructKeys(keys, legacy)
-    mkdirp(path.dirname(namefile), function (err) {
+    mkdirp(path.dirname(filename), function (err) {
       if(err) return cb(err)
-      fs.writeFile(namefile, keyfile, function(err) {
-        console.log(namefile, keyfile)
+      fs.writeFile(filename, keyfile, function(err) {
         if (err) return cb(err)
         cb(null, keys)
       })
     })
   }
 
-  exports.createSync = function(namefile, curve, legacy) {
-    namefile = toNameFile(namefile)
+  exports.createSync = function(filename, curve, legacy) {
+    filename = toFile(filename, 'secret')
     var keys = exports.generate(curve)
     var keyfile = constructKeys(keys, legacy)
-    mkdirp.sync(path.dirname(namefile))
-    fs.writeFileSync(namefile, keyfile)
+    mkdirp.sync(path.dirname(filename))
+    fs.writeFileSync(filename, keyfile)
     return keys
-  }
-
-  exports.loadOrCreate = function (namefile, cb) {
-    namefile = toNameFile(namefile)
-    exports.load(namefile, function (err, keys) {
-      if(!err) return cb(null, keys)
-      exports.create(namefile, cb)
-    })
-  }
-
-  exports.loadOrCreateSync = function (namefile) {
-    namefile = toNameFile(namefile)
-    try {
-      return exports.loadSync(namefile)
-    } catch (err) {
-      return exports.createSync(namefile)
-    }
   }
 
   return exports

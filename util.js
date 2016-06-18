@@ -3,7 +3,6 @@ exports.hasSigil = function hasSigil (s) {
   return /^(@|%|&)/.test(s)
 }
 
-
 function tag (key, tag) {
   if(!tag) throw new Error('no tag for:' + key.toString('base64'))
   return key.toString('base64')+'.' + tag.replace(/^\./, '')
@@ -25,6 +24,7 @@ exports.getTag = function getTag (string) {
   var i = string.indexOf('.')
   return string.substring(i+1)
 }
+
 
 
 
