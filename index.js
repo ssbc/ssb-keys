@@ -1,6 +1,5 @@
 var deepEqual  = require('deep-equal')
 
-var crypto     = require('crypto')
 var createHmac = require('hmac')
 
 var sodium     = require('chloride')
@@ -17,11 +16,6 @@ function isString (s) {
 }
 //UTILS
 
-
-function hasSigil (s) {
-  return /^(@|%|&)/.test(s)
-}
-
 function clone (obj) {
   var _obj = {}
   for(var k in obj) {
@@ -31,19 +25,12 @@ function clone (obj) {
   return _obj
 }
 
-function hash (data, enc) {
-  data = (
-    'string' === typeof data && enc == null
-  ? new Buffer(data, 'binary')
-  : new Buffer(data, enc)
-  )
-  return crypto.createHash('sha256').update(data).digest('base64')+'.sha256'
-}
-
 var isLink = ssbref.isLink
 var isFeedId = ssbref.isFeedId
 
-exports.hash = hash
+exports.hash = u.hash
+
+exports.getTag = u.getTag
 
 function isObject (o) {
   return 'object' === typeof o
@@ -57,33 +44,6 @@ function isString(s) {
   return 'string' === typeof s
 }
 
-//crazy hack to make electron not crash
-function base64ToBuffer(s) {
-  var l = s.length * 6 / 8
-  if(s[s.length - 2] == '=')
-    l = l - 2
-  else
-  if(s[s.length - 1] == '=')
-    l = l - 1
-
-  var b = new Buffer(l)
-  b.write(s, 'base64')
-  return b
-}
-
-function toBuffer(buf) {
-  if(buf == null) return buf
-  if(Buffer.isBuffer(buf)) throw new Error('already a buffer')
-  var i = buf.indexOf('.')
-  var start = (hasSigil(buf)) ? 1 : 0
-  return base64ToBuffer(buf.substring(start, ~i ? i : buf.length))
-}
-
-//function toUint8(buf) {
-//  return new Uint8Array(toBuffer(buf))
-//}
-
-
 var curves = {}
 curves.ed25519 = require('./sodium')
 try { curves.k256 = require('./eccjs') }
@@ -96,7 +56,7 @@ function getCurve(keys) {
     keys = keys.public
 
   if(!curve && isString(keys))
-    curve = getTag(keys)
+    curve = u.getTag(keys)
 
   if(!curves[curve]) {
     throw new Error(
@@ -121,8 +81,8 @@ exports.generate = function (curve, seed) {
 }
 
 //import functions for loading/saving keys from storage
-var FS = require('./fs')(exports.generate)
-for(var key in FS) exports[key] = FS[key]
+var storage = require('./storage')(exports.generate)
+for(var key in storage) exports[key] = storage[key]
 
 
 exports.loadOrCreate = function (filename, cb) {
@@ -132,7 +92,7 @@ exports.loadOrCreate = function (filename, cb) {
   })
 }
 
-exports.loadOrCreateSync = function (namefile) {
+exports.loadOrCreateSync = function (filename) {
   try {
     return exports.loadSync(filename)
   } catch (err) {
@@ -152,7 +112,7 @@ exports.sign = function (keys, msg) {
   var curve = getCurve(keys)
 
   return curves[curve]
-    .sign(toBuffer(keys.private || keys), msg)
+    .sign(u.toBuffer(keys.private || keys), msg)
     .toString('base64')+'.sig.'+curve
 
 }
@@ -163,15 +123,15 @@ exports.verify = function (keys, sig, msg) {
   if(isObject(sig))
     throw new Error('signature should be base64 string, did you mean verifyObj(public, signed_obj)')
   return curves[getCurve(keys)].verify(
-    toBuffer(keys.public || keys),
-    toBuffer(sig),
+    u.toBuffer(keys.public || keys),
+    u.toBuffer(sig),
     isBuffer(msg) ? msg : new Buffer(msg)
   )
 }
 
 // OTHER CRYTPO FUNCTIONS
 
-exports.hmac = function (data, key) {
+exports.hmac = function (data, key) { //no longer used, pretty sure.
   return createHmac(createHash, 64, key)
     .update(data).digest('base64')+'.sha256.hmac'
 }
@@ -196,7 +156,7 @@ exports.box = function (msg, recipients) {
 
   recipients = recipients.map(function (keys) {
     var public = keys.public || keys
-    return sodium.crypto_sign_ed25519_pk_to_curve25519(toBuffer(public))
+    return sodium.crypto_sign_ed25519_pk_to_curve25519(u.toBuffer(public))
   })
 
   //it's since the nonce is 24 bytes (a multiple of 3)
@@ -206,15 +166,11 @@ exports.box = function (msg, recipients) {
 }
 
 exports.unbox = function (boxed, keys) {
-  boxed = toBuffer(boxed)
-  var sk = sodium.crypto_sign_ed25519_sk_to_curve25519(toBuffer(keys.private || keys))
+  boxed = u.toBuffer(boxed)
+  var sk = sodium.crypto_sign_ed25519_sk_to_curve25519(u.toBuffer(keys.private || keys))
 
   var msg = pb.multibox_open(boxed, sk)
   if(msg) return JSON.parse(''+msg)
 }
-
-
-
-
 
 

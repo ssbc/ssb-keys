@@ -65,7 +65,7 @@ module.exports = function (generate) {
     var fool_browserify = require
     var ecc = fool_browserify('./eccjs')
 
-    return keysToJSON(ecc.restore(toBuffer(private)), 'k256')
+    return u.keysToJSON(ecc.restore(u.toBuffer(private)), 'k256')
   }
 
   function toFile (filename) {
@@ -110,7 +110,7 @@ module.exports = function (generate) {
 
   exports.createSync = function(filename, curve, legacy) {
     filename = toFile(filename, 'secret')
-    var keys = exports.generate(curve)
+    var keys = generate(curve)
     var keyfile = constructKeys(keys, legacy)
     mkdirp.sync(path.dirname(filename))
     fs.writeFileSync(filename, keyfile)
@@ -119,8 +119,5 @@ module.exports = function (generate) {
 
   return exports
 }
-
-
-
 
 
