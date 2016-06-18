@@ -6,10 +6,12 @@ var fs = require('fs')
 
 tape('create and load async', function (t) {
   try { fs.unlinkSync(path) } catch(e) {}
+  console.log(ssbkeys)
   ssbkeys.create(path, function(err, k1) {
     if (err) throw err
     ssbkeys.load(path, function(err, k2) {
       if (err) throw err
+      console.log(k1, k2)
       t.equal(k1.id.toString('hex'), k2.id.toString('hex'))
       t.equal(k1.private.toString('hex'), k2.private.toString('hex'))
       t.equal(k1.public.toString('hex'), k2.public.toString('hex'))
@@ -18,6 +20,7 @@ tape('create and load async', function (t) {
   })
 })
 
+return
 tape('create and load sync', function (t) {
   try { fs.unlinkSync(path) } catch(e) {}
   var k1 = ssbkeys.createSync(path)
@@ -181,3 +184,5 @@ tape('create and load presigil-legacy', function (t) {
   })
 
 })
+
+

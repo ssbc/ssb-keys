@@ -1,0 +1,140 @@
+var fs         = require('fs')
+var mkdirp     = require('mkdirp')
+var path       = require('path')
+var u          = require('./util')
+
+function isObject (o) {
+  return 'object' === typeof o
+}
+
+function isFunction (f) {
+  return 'function' === typeof f
+}
+
+function empty(v) { return !!v }
+
+module.exports = function (generate) {
+
+  var exports = {}
+
+  //(DE)SERIALIZE KEYS
+
+  function constructKeys(keys, legacy) {
+    if(!keys) throw new Error('*must* pass in keys') 
+
+    return [
+    '# this is your SECRET name.',
+    '# this name gives you magical powers.',
+    '# with it you can mark your messages so that your friends can verify',
+    '# that they really did come from you.',
+    '#',
+    '# if any one learns this name, they can use it to destroy your identity',
+    '# NEVER show this to anyone!!!',
+    '',
+    legacy ? keys.private : JSON.stringify(keys, null, 2),
+    '',
+    '# WARNING! It\'s vital that you DO NOT edit OR share your secret name',
+    '# instead, share your public name',
+    '# your public name: ' + keys.id
+    ].join('\n')
+  }
+
+  function reconstructKeys(keyfile) {
+    var private = keyfile
+      .replace(/\s*\#[^\n]*/g, '')
+      .split('\n').filter(empty).join('')
+
+    //if the key is in JSON format, we are good.
+    try {
+      var keys = JSON.parse(private)
+      if(!u.hasSigil(keys.id)) keys.id = '@' + keys.public
+      return keys
+    } catch (_) { console.error(_.stack) }
+
+    //else, reconstruct legacy curve...
+
+    var curve = u.getTag(private)
+
+    if(curve !== 'k256')
+      throw new Error('expected legacy curve (k256) but found:' + curve)
+
+    var fool_browserify = require
+    var ecc = fool_browserify('./eccjs')
+
+    return keysToJSON(ecc.restore(toBuffer(private)), 'k256')
+  }
+
+  var toNameFile = exports.toNameFile = function (namefile) {
+    if(isObject(namefile))
+      return path.join(namefile.path, 'secret')
+    return namefile
+  }
+
+  exports.load = function(namefile, cb) {
+    namefile = toNameFile(namefile)
+    fs.readFile(namefile, 'ascii', function(err, privateKeyStr) {
+      if (err) return cb(err)
+      var keys
+      try { keys = reconstructKeys(privateKeyStr) }
+      catch (err) { return cb(err) }
+      cb(null, keys)
+    })
+  }
+
+  exports.loadSync = function(namefile) {
+    namefile = toNameFile(namefile)
+    return reconstructKeys(fs.readFileSync(namefile, 'ascii'))
+  }
+
+  exports.create = function(namefile, curve, legacy, cb) {
+    if(isFunction(legacy))
+      cb = legacy, legacy = null
+    if(isFunction(curve))
+      cb = curve, curve = null
+
+    namefile = toNameFile(namefile)
+    var keys = generate(curve)
+    var keyfile = constructKeys(keys, legacy)
+    mkdirp(path.dirname(namefile), function (err) {
+      if(err) return cb(err)
+      fs.writeFile(namefile, keyfile, function(err) {
+        console.log(namefile, keyfile)
+        if (err) return cb(err)
+        cb(null, keys)
+      })
+    })
+  }
+
+  exports.createSync = function(namefile, curve, legacy) {
+    namefile = toNameFile(namefile)
+    var keys = exports.generate(curve)
+    var keyfile = constructKeys(keys, legacy)
+    mkdirp.sync(path.dirname(namefile))
+    fs.writeFileSync(namefile, keyfile)
+    return keys
+  }
+
+  exports.loadOrCreate = function (namefile, cb) {
+    namefile = toNameFile(namefile)
+    exports.load(namefile, function (err, keys) {
+      if(!err) return cb(null, keys)
+      exports.create(namefile, cb)
+    })
+  }
+
+  exports.loadOrCreateSync = function (namefile) {
+    namefile = toNameFile(namefile)
+    try {
+      return exports.loadSync(namefile)
+    } catch (err) {
+      return exports.createSync(namefile)
+    }
+  }
+
+  return exports
+}
+
+
+
+
+

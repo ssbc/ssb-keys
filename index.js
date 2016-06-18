@@ -1,6 +1,3 @@
-var fs         = require('fs')
-var mkdirp     = require('mkdirp')
-var path       = require('path')
 var deepEqual  = require('deep-equal')
 
 var crypto     = require('crypto')
@@ -11,12 +8,19 @@ var ssbref     = require('ssb-ref')
 
 var pb         = require('private-box')
 
+var u          = require('./util')
+
 var isBuffer = Buffer.isBuffer
 
 function isString (s) {
   return 'string' === typeof s
 }
 //UTILS
+
+
+function hasSigil (s) {
+  return /^(@|%|&)/.test(s)
+}
 
 function clone (obj) {
   var _obj = {}
@@ -53,12 +57,6 @@ function isString(s) {
   return 'string' === typeof s
 }
 
-function hasSigil (s) {
-  return /^(@|%|&)/.test(s)
-}
-
-function empty(v) { return !!v }
-
 //crazy hack to make electron not crash
 function base64ToBuffer(s) {
   var l = s.length * 6 / 8
@@ -81,146 +79,10 @@ function toBuffer(buf) {
   return base64ToBuffer(buf.substring(start, ~i ? i : buf.length))
 }
 
-function toUint8(buf) {
-  return new Uint8Array(toBuffer(buf))
-}
+//function toUint8(buf) {
+//  return new Uint8Array(toBuffer(buf))
+//}
 
-function getTag (string) {
-  var i = string.indexOf('.')
-  return string.substring(i+1)
-}
-
-exports.getTag = getTag
-
-function tag (key, tag) {
-  if(!tag) throw new Error('no tag for:' + key.toString('base64'))
-  return key.toString('base64')+'.' + tag.replace(/^\./, '')
-}
-
-function keysToJSON(keys, curve) {
-  curve = (keys.curve || curve)
-
-  var pub = tag(keys.public.toString('base64'), curve)
-  return {
-    curve: curve,
-    public: pub,
-    private: keys.private ? tag(keys.private.toString('base64'), curve) : undefined,
-    id: '@'+(curve === 'ed25519' ? pub : hash(pub))
-  }
-}
-
-//(DE)SERIALIZE KEYS
-
-function constructKeys(keys, legacy) {
-  if(!keys) throw new Error('*must* pass in keys') 
-
-  return [
-  '# this is your SECRET name.',
-  '# this name gives you magical powers.',
-  '# with it you can mark your messages so that your friends can verify',
-  '# that they really did come from you.',
-  '#',
-  '# if any one learns this name, they can use it to destroy your identity',
-  '# NEVER show this to anyone!!!',
-  '',
-  legacy ? keys.private : JSON.stringify(keys, null, 2),
-  '',
-  '# WARNING! It\'s vital that you DO NOT edit OR share your secret name',
-  '# instead, share your public name',
-  '# your public name: ' + keys.id
-  ].join('\n')
-}
-
-function reconstructKeys(keyfile) {
-  var private = keyfile
-    .replace(/\s*\#[^\n]*/g, '')
-    .split('\n').filter(empty).join('')
-
-  //if the key is in JSON format, we are good.
-  try {
-    var keys = JSON.parse(private)
-    if(!hasSigil(keys.id)) keys.id = '@' + keys.public
-    return keys
-  } catch (_) {}
-
-  //else, reconstruct legacy curve...
-
-  var curve = getTag(private)
-
-  if(curve !== 'k256')
-    throw new Error('expected legacy curve (k256) but found:' + curve)
-
-  var ecc = require('./eccjs')
-
-  return keysToJSON(ecc.restore(toBuffer(private)), 'k256')
-}
-
-var toNameFile = exports.toNameFile = function (namefile) {
-  if(isObject(namefile))
-    return path.join(namefile.path, 'secret')
-  return namefile
-}
-
-exports.load = function(namefile, cb) {
-  namefile = toNameFile(namefile)
-  fs.readFile(namefile, 'ascii', function(err, privateKeyStr) {
-    if (err) return cb(err)
-    try { cb(null, reconstructKeys(privateKeyStr)) }
-    catch (e) { cb(err) }
-  })
-}
-
-exports.loadSync = function(namefile) {
-  namefile = toNameFile(namefile)
-  return reconstructKeys(fs.readFileSync(namefile, 'ascii'))
-}
-
-exports.create = function(namefile, curve, legacy, cb) {
-  if(isFunction(legacy))
-    cb = legacy, legacy = null
-  if(isFunction(curve))
-    cb = curve, curve = null
-
-  namefile = toNameFile(namefile)
-  var keys = exports.generate(curve)
-  var keyfile = constructKeys(keys, legacy)
-  mkdirp(path.dirname(namefile), function (err) {
-    if(err) return cb(err)
-    fs.writeFile(namefile, keyfile, function(err) {
-      if (err) return cb(err)
-      cb(null, keys)
-    })
-  })
-}
-
-exports.createSync = function(namefile, curve, legacy) {
-  namefile = toNameFile(namefile)
-  var keys = exports.generate(curve)
-  var keyfile = constructKeys(keys, legacy)
-  mkdirp.sync(path.dirname(namefile))
-  fs.writeFileSync(namefile, keyfile)
-  return keys
-}
-
-exports.loadOrCreate = function (namefile, cb) {
-  namefile = toNameFile(namefile)
-  exports.load(namefile, function (err, keys) {
-    if(!err) return cb(null, keys)
-    exports.create(namefile, cb)
-  })
-}
-
-exports.loadOrCreateSync = function (namefile) {
-  namefile = toNameFile(namefile)
-  try {
-    return exports.loadSync(namefile)
-  } catch (err) {
-    return exports.createSync(namefile)
-  }
-}
-
-
-// DIGITAL SIGNATURES
 
 var curves = {}
 curves.ed25519 = require('./sodium')
@@ -255,8 +117,12 @@ exports.generate = function (curve, seed) {
   if(!curves[curve])
     throw new Error('unknown curve:'+curve)
 
-  return keysToJSON(curves[curve].generate(seed), curve)
+  return u.keysToJSON(curves[curve].generate(seed), curve)
 }
+
+//import functions for loading/saving keys from storage
+var FS = require('./fs')(exports.generate)
+for(var key in FS) exports[key] = FS[key]
 
 //takes a public key and a hash and returns a signature.
 //(a signature must be a node buffer)
@@ -329,5 +195,7 @@ exports.unbox = function (boxed, keys) {
   var msg = pb.multibox_open(boxed, sk)
   if(msg) return JSON.parse(''+msg)
 }
+
+
 
 
