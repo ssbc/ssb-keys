@@ -23,6 +23,9 @@
   "scripts": {
     "test": "set -e; for t in test/*.js; do node $t; done"
   },
+  "browser": {
+    "./storage.js": "./local-storage.js"
+  },
   "author": "Paul Frazee <pfrazee@gmail.com>",
   "license": "MIT"
 }
