@@ -24,7 +24,8 @@
     "test": "set -e; for t in test/*.js; do node $t; done"
   },
   "browser": {
-    "./storage.js": "./local-storage.js"
+    "./storage.js": "./local-storage.js",
+    "./eccjs.js": false
   },
   "author": "Paul Frazee <pfrazee@gmail.com>",
   "license": "MIT"
