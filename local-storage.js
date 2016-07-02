@@ -14,7 +14,6 @@ module.exports = function (generate) {
   }
 
   function load (filename) {
-    console.log('FILE', localStorage[filename])
     return JSON.parse(localStorage[filename])
   }
 
@@ -34,4 +33,5 @@ module.exports = function (generate) {
   }
 
 }
+
 
