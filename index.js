@@ -1,7 +1,5 @@
 var deepEqual  = require('deep-equal')
 
-var createHmac = require('hmac')
-
 var sodium     = require('chloride')
 var ssbref     = require('ssb-ref')
 
@@ -131,11 +129,6 @@ exports.verify = function (keys, sig, msg) {
 
 // OTHER CRYTPO FUNCTIONS
 
-exports.hmac = function (data, key) { //no longer used, pretty sure.
-  return createHmac(createHash, 64, key)
-    .update(data).digest('base64')+'.sha256.hmac'
-}
-
 exports.signObj = function (keys, obj) {
   var _obj = clone(obj)
   var b = new Buffer(JSON.stringify(_obj, null, 2))
@@ -172,5 +165,8 @@ exports.unbox = function (boxed, keys) {
   var msg = pb.multibox_open(boxed, sk)
   if(msg) return JSON.parse(''+msg)
 }
+
+
+
 
 

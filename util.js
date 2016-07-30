@@ -1,4 +1,4 @@
-var crypto     = require('crypto')
+var cl     = require('chloride')
 
 exports.hash = function (data, enc) {
   data = (
@@ -6,7 +6,7 @@ exports.hash = function (data, enc) {
   ? new Buffer(data, 'binary')
   : new Buffer(data, enc)
   )
-  return crypto.createHash('sha256').update(data).digest('base64')+'.sha256'
+  return cl.crypto_hash_sha256(data).toString('base64')+'.sha256'
 }
 
 exports.hasSigil = function hasSigil (s) {
@@ -61,6 +61,7 @@ exports.toBuffer = function (buf) {
 //function toUint8(buf) {
 //  return new Uint8Array(toBuffer(buf))
 //}
+
 
 
 
