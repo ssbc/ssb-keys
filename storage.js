@@ -19,6 +19,9 @@ function toFile (s) {
 }
 module.exports = function (generate) {
 
+  if(!fs || !fs.readFileSync)
+    return require('./local-storage')(generate)
+
   var exports = {}
 
   //(DE)SERIALIZE KEYS
@@ -119,5 +122,6 @@ module.exports = function (generate) {
 
   return exports
 }
+
 
 
