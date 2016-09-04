@@ -6,7 +6,8 @@ module.exports = {
   curves: ['ed25519'],
 
   generate: function (seed) {
-    seed = seed || sodium.randombytes(seed = new Buffer(32))
+    if(!seed) sodium.randombytes(seed = new Buffer(32))
+
     var keys = seed ? sodium.crypto_sign_seed_keypair(seed) : sodium.crypto_sign_keypair()
     return {
       curve: 'ed25519',
@@ -27,6 +28,8 @@ module.exports = {
   }
 
 }
+
+
 
 
 
