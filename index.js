@@ -26,6 +26,8 @@ function clone (obj) {
 var isLink = ssbref.isLink
 var isFeedId = ssbref.isFeedId
 
+var hmac = sodium.crypto_auth
+
 exports.hash = u.hash
 
 exports.getTag = u.getTag
@@ -44,8 +46,6 @@ function isString(s) {
 
 var curves = {}
 curves.ed25519 = require('./sodium')
-try { curves.k256 = require('./eccjs') }
-catch (_) {}
 
 function getCurve(keys) {
   var curve = keys.curve
@@ -102,7 +102,7 @@ exports.loadOrCreateSync = function (filename) {
 //takes a public key and a hash and returns a signature.
 //(a signature must be a node buffer)
 
-exports.sign = function (keys, msg) {
+function sign (keys, msg) {
   if(isString(msg))
     msg = new Buffer(msg)
   if(!isBuffer(msg))
@@ -117,7 +117,7 @@ exports.sign = function (keys, msg) {
 
 //takes a public key, signature, and a hash
 //and returns true if the signature was valid.
-exports.verify = function (keys, sig, msg) {
+function verify (keys, sig, msg) {
   if(isObject(sig))
     throw new Error('signature should be base64 string, did you mean verifyObj(public, signed_obj)')
   return curves[getCurve(keys)].verify(
@@ -129,19 +129,23 @@ exports.verify = function (keys, sig, msg) {
 
 // OTHER CRYTPO FUNCTIONS
 
-exports.signObj = function (keys, obj) {
+exports.signObj = function (keys, hmac_key, obj) {
+  if(!obj) obj = hmac_key, hmac_key = null
   var _obj = clone(obj)
   var b = new Buffer(JSON.stringify(_obj, null, 2))
-  _obj.signature = exports.sign(keys, b)
+  if(hmac_key) b = hmac(b, hmac_key)
+  _obj.signature = sign(keys, b)
   return _obj
 }
 
-exports.verifyObj = function (keys, obj) {
+exports.verifyObj = function (keys, hmac_key, obj) {
+  if(!obj) obj = hmac_key, hmac_key = null
   obj = clone(obj)
   var sig = obj.signature
   delete obj.signature
   var b = new Buffer(JSON.stringify(obj, null, 2))
-  return exports.verify(keys, sig, b)
+  if(hmac_key) b = hmac(b, hmac_key)
+  return verify(keys, sig, b)
 }
 
 exports.box = function (msg, recipients) {
@@ -152,9 +156,6 @@ exports.box = function (msg, recipients) {
     return sodium.crypto_sign_ed25519_pk_to_curve25519(u.toBuffer(public))
   })
 
-  //it's since the nonce is 24 bytes (a multiple of 3)
-  //it's possible to concatenate the base64 strings
-  //and still have a valid base64 string.
   return pb.multibox(msg, recipients).toString('base64')+'.box'
 }
 
