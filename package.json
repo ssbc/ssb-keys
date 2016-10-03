@@ -17,15 +17,13 @@
     "ssb-ref": "^2.0.0"
   },
   "devDependencies": {
-    "eccjs": "git://github.com/dominictarr/eccjs.git#586f6d47507184a2efe84684ed0a30605cbc43a5",
     "tape": "^3.0.3"
   },
   "scripts": {
     "test": "set -e; for t in test/*.js; do node $t; done"
   },
-  "browser": {
-    "./eccjs.js": false
-  },
   "author": "Paul Frazee <pfrazee@gmail.com>",
   "license": "MIT"
 }
+
+
