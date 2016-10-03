@@ -27,36 +27,33 @@ tape('create and load sync', function (t) {
   t.end()
 })
 
-tape('sign and verify', function (t) {
-  var keys = ssbkeys.generate()
-  var msg = ssbkeys.hash("HELLO THERE?")
-  var sig = ssbkeys.sign(keys, msg)
-  console.log('public', keys.public)
-  console.log('sig', sig)
-  t.ok(sig)
-  t.equal(ssbkeys.getTag(sig), 'sig.ed25519')
-  t.ok(ssbkeys.verify(keys, sig, msg))
-
-  t.end()
-
-})
-
-tape('sign and verify, call with keys directly', function (t) {
-
-  var keys = ssbkeys.generate()
-  var msg = ssbkeys.hash("HELLO THERE?")
-  var sig = ssbkeys.sign(keys.private, msg)
-  console.log('public', keys.public)
-  console.log('sig', sig)
-  t.ok(sig)
-  t.equal(ssbkeys.getTag(sig), 'sig.ed25519')
-  t.ok(ssbkeys.verify(keys.public, sig, msg))
-
-  t.end()
-
-})
-
 tape('sign and verify a javascript object', function (t) {
+
+  var obj = require('../package.json')
+  var hmac_key = crypto.randomBytes(32)
+  var hmac_key2 = crypto.randomBytes(32)
+  console.log(obj)
+
+  var keys = ssbkeys.generate()
+  var sig = ssbkeys.signObj(keys.private, hmac_key, obj)
+  console.log(sig)
+  t.ok(sig)
+  //verify must be passed the key to correctly verify
+  t.notOk(ssbkeys.verifyObj(keys, sig))
+  t.notOk(ssbkeys.verifyObj({public: keys.public}, sig))
+  t.ok(ssbkeys.verifyObj(keys, hmac_key, sig))
+  t.ok(ssbkeys.verifyObj({public: keys.public}, hmac_key, sig))
+  //a different hmac_key fails to verify
+  t.notOk(ssbkeys.verifyObj(keys, hmac_key2, sig))
+  t.notOk(ssbkeys.verifyObj({public: keys.public}, hmac_key2, sig))
+  t.end()
+
+})
+
+//allow sign and verify to also take a separate key
+//so that we can create signatures that cannot be used in other places.
+//(i.e. testnet) avoiding chosen protocol attacks.
+tape('sign and verify a hmaced object javascript object', function (t) {
 
   var obj = require('../package.json')
 
@@ -66,59 +63,12 @@ tape('sign and verify a javascript object', function (t) {
   var sig = ssbkeys.signObj(keys.private, obj)
   console.log(sig)
   t.ok(sig)
-  t.ok(ssbkeys.verifyObj(keys, sig, obj))
+  t.ok(ssbkeys.verifyObj(keys, sig))
+  t.ok(ssbkeys.verifyObj({public: keys.public}, sig))
   t.end()
 
 })
 
-//tape('test legacy curve: k256', function (t) {
-//  var keys = ssbkeys.generate('k256')
-//
-//  var msg = ssbkeys.hash("LEGACY SYSTEMS")
-//  var sig = ssbkeys.sign(keys, msg)
-//
-//  console.log('public', keys.public)
-//  console.log('sig', sig)
-//
-//  t.ok(sig)
-//  t.equal(ssbkeys.getTag(sig), 'sig.k256')
-//  t.ok(ssbkeys.verify(keys, sig, msg))
-//
-//  t.end()
-//})
-//
-//tape('create and load async, legacy', function (t) {
-//
-//  ssbkeys.create(path, 'k256', function(err, k1) {
-//    if (err) throw err
-//    ssbkeys.load(path, function(err, k2) {
-//      if (err) throw err
-//
-//      t.equal(k2.curve, 'k256')
-//      t.equal(k1.id, k2.id)
-//      t.equal(k1.private, k2.private)
-//      t.equal(k1.public, k2.public)
-//
-//      t.end()
-//    })
-//  })
-//})
-
-//tape('create and load sync, legacy', function (t) {
-//
-//  var k1 = ssbkeys.createSync(path, 'k256', true)
-//  var k2 = ssbkeys.loadSync(path)
-//
-//  console.log(k2)
-//
-//  t.equal(k2.curve, 'k256')
-//  t.equal(k1.id, k2.id)
-//  t.equal(k1.private, k2.private)
-//  t.equal(k1.public, k2.public)
-//
-//  t.end()
-//})
-//
 tape('seeded keys, ed25519', function (t) {
 
   var seed = crypto.randomBytes(32)
@@ -131,18 +81,6 @@ tape('seeded keys, ed25519', function (t) {
 
 })
 
-//tape('seeded keys, k256', function (t) {
-//
-//  var seed = crypto.randomBytes(32)
-//  var k1 = ssbkeys.generate('k256', seed)
-//  var k2 = ssbkeys.generate('k256', seed)
-//
-//  t.deepEqual(k1, k2)
-//
-//  t.end()
-//
-//})
-//
 tape('ed25519 id === "@" ++ pubkey', function (t) {
 
   var keys = ssbkeys.generate('ed25519')
@@ -151,4 +89,12 @@ tape('ed25519 id === "@" ++ pubkey', function (t) {
   t.end()
 
 })
+
+
+
+
+
+
+
+
 
