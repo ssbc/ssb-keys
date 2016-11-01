@@ -1,7 +1,6 @@
 var deepEqual  = require('deep-equal')
 
 var sodium     = require('chloride')
-var ssbref     = require('ssb-ref')
 
 var pb         = require('private-box')
 
@@ -22,9 +21,6 @@ function clone (obj) {
   }
   return _obj
 }
-
-var isLink = ssbref.isLink
-var isFeedId = ssbref.isFeedId
 
 var hmac = sodium.crypto_auth
 
@@ -166,8 +162,3 @@ exports.unbox = function (boxed, keys) {
   var msg = pb.multibox_open(boxed, sk)
   if(msg) return JSON.parse(''+msg)
 }
-
-
-
-
-
