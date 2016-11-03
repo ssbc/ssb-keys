@@ -35,33 +35,10 @@ exports.getTag = function getTag (string) {
   return string.substring(i+1)
 }
 
-//crazy hack to make electron not crash
-function base64ToBuffer(s) {
-  var l = s.length * 6 / 8
-  if(s[s.length - 2] == '=')
-    l = l - 2
-  else
-  if(s[s.length - 1] == '=')
-    l = l - 1
-
-  var b = new Buffer(l)
-  b.write(s, 'base64')
-  return b
-}
-
 exports.toBuffer = function (buf) {
   if(buf == null) return buf
   if(Buffer.isBuffer(buf)) throw new Error('already a buffer')
   var i = buf.indexOf('.')
   var start = (exports.hasSigil(buf)) ? 1 : 0
   return new Buffer(buf.substring(start, ~i ? i : buf.length), 'base64')
-//  return base64ToBuffer()
 }
-
-//function toUint8(buf) {
-//  return new Uint8Array(toBuffer(buf))
-//}
-
-
-
-
