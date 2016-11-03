@@ -13,10 +13,12 @@ function isFunction (f) {
 
 function empty(v) { return !!v }
 
-function toFile (s) {
-  if('object' == typeof s && s.path)
-    return path.join(s.path, 'secret')
+function toFile (filename) {
+  if(isObject(filename))
+    return path.join(filename.path, 'secret')
+  return filename
 }
+
 module.exports = function (generate) {
 
   if(!fs || !fs.readFileSync)
@@ -71,12 +73,6 @@ module.exports = function (generate) {
     return u.keysToJSON(ecc.restore(u.toBuffer(private)), 'k256')
   }
 
-  function toFile (filename) {
-    if(isObject(filename))
-      return path.join(filename.path, 'secret')
-    return filename
-  }
-
   exports.load = function(filename, cb) {
     filename = toFile(filename, 'secret')
     fs.readFile(filename, 'ascii', function(err, privateKeyStr) {
@@ -122,6 +118,3 @@ module.exports = function (generate) {
 
   return exports
 }
-
-
-

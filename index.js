@@ -8,9 +8,6 @@ var u          = require('./util')
 
 var isBuffer = Buffer.isBuffer
 
-function isString (s) {
-  return 'string' === typeof s
-}
 //UTILS
 
 function clone (obj) {
