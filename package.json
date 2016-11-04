@@ -5,7 +5,7 @@
   "homepage": "https://github.com/ssbc/ssb-keys",
   "repository": {
     "type": "git",
-    "url": "git://github.com/ssbc/ssb-crypto.git"
+    "url": "git://github.com/ssbc/ssb-keys.git"
   },
   "dependencies": {
     "blake2s": "~1.0.0",
