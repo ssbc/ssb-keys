@@ -1,5 +1,3 @@
-var deepEqual  = require('deep-equal')
-
 var sodium     = require('chloride')
 
 var pb         = require('private-box')
