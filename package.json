@@ -16,7 +16,7 @@
     "tape": "^3.0.3"
   },
   "scripts": {
-    "test": "set -e; for t in test/*.js; do node $t; done"
+    "test": "tape test/"
   },
   "author": "Paul Frazee <pfrazee@gmail.com>",
   "license": "MIT"
