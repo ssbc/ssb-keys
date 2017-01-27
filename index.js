@@ -1,3 +1,4 @@
+'use strict'
 var sodium     = require('chloride')
 
 var pb         = require('private-box')
@@ -143,8 +144,7 @@ exports.box = function (msg, recipients) {
   msg = new Buffer(JSON.stringify(msg))
 
   recipients = recipients.map(function (keys) {
-    var public = keys.public || keys
-    return sodium.crypto_sign_ed25519_pk_to_curve25519(u.toBuffer(public))
+    return sodium.crypto_sign_ed25519_pk_to_curve25519(u.toBuffer(keys.public || keys))
   })
 
   return pb.multibox(msg, recipients).toString('base64')+'.box'
@@ -157,3 +157,4 @@ exports.unbox = function (boxed, keys) {
   var msg = pb.multibox_open(boxed, sk)
   if(msg) return JSON.parse(''+msg)
 }
+
