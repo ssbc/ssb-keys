@@ -19,12 +19,12 @@ module.exports = {
     }
   },
 
-  sign: function (private, message) {
-    return sodium.crypto_sign_detached(message, private)
+  sign: function (privateKey, message) {
+    return sodium.crypto_sign_detached(message, privateKey)
   },
 
-  verify: function (public, sig, message) {
-    return sodium.crypto_sign_verify_detached(sig, message, public)
+  verify: function (publicKey, sig, message) {
+    return sodium.crypto_sign_verify_detached(sig, message, publicKey)
   }
 
 }
