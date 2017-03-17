@@ -49,20 +49,20 @@ module.exports = function (generate) {
   }
 
   function reconstructKeys(keyfile) {
-    var private = keyfile
+    var privateKey = keyfile
       .replace(/\s*\#[^\n]*/g, '')
       .split('\n').filter(empty).join('')
 
     //if the key is in JSON format, we are good.
     try {
-      var keys = JSON.parse(private)
+      var keys = JSON.parse(privateKey)
       if(!u.hasSigil(keys.id)) keys.id = '@' + keys.public
       return keys
     } catch (_) { console.error(_.stack) }
 
     //else, reconstruct legacy curve...
 
-    var curve = u.getTag(private)
+    var curve = u.getTag(privateKey)
 
     if(curve !== 'k256')
       throw new Error('expected legacy curve (k256) but found:' + curve)
@@ -70,7 +70,7 @@ module.exports = function (generate) {
     var fool_browserify = require
     var ecc = fool_browserify('./eccjs')
 
-    return u.keysToJSON(ecc.restore(u.toBuffer(private)), 'k256')
+    return u.keysToJSON(ecc.restore(u.toBuffer(privateKey)), 'k256')
   }
 
   exports.load = function(filename, cb) {
