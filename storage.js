@@ -21,7 +21,7 @@ function toFile (filename) {
 
 module.exports = function (generate) {
 
-  if(!fs || !fs.readFileSync)
+  if(!fs || !fs.readFile)
     return require('./local-storage')(generate)
 
   var exports = {}
