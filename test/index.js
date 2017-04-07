@@ -19,8 +19,8 @@ tape('create and load async', function (t) {
 })
 
 tape('create and load sync', function (t) {
-  var k1 = ssbkeys.createSync(path)
-  var k2 = ssbkeys.loadSync(path)
+  var k1 = ssbkeys.createSync(path+'1')
+  var k2 = ssbkeys.loadSync(path+'1')
   t.equal(k1.id.toString('hex'), k2.id.toString('hex'))
   t.equal(k1.private.toString('hex'), k2.private.toString('hex'))
   t.equal(k1.public.toString('hex'), k2.public.toString('hex'))
