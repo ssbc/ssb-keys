@@ -6,7 +6,7 @@ supplies key loading and other cryptographic functions needed in secure-scuttleb
 var ssbkeys = require('ssb-keys')
 
 //usually, load keys like this
-var keys = ssbkeys.createOrLoadSync(filename)
+var keys = ssbkeys.loadOrCreateSync(filename)
 /* => {
   id: String,
   public: String,
