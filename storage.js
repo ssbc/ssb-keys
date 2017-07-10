@@ -101,7 +101,7 @@ module.exports = function (generate) {
     var keyfile = constructKeys(keys, legacy)
     mkdirp(path.dirname(filename), function (err) {
       if(err) return cb(err)
-      fs.writeFile(filename, keyfile, {mode: 0400}, function(err) {
+      fs.writeFile(filename, keyfile, {mode: 0x100}, function(err) {
         if (err) return cb(err)
         cb(null, keys)
       })
@@ -113,7 +113,7 @@ module.exports = function (generate) {
     var keys = generate(curve)
     var keyfile = constructKeys(keys, legacy)
     mkdirp.sync(path.dirname(filename))
-    fs.writeFileSync(filename, keyfile, {mode: 0400})
+    fs.writeFileSync(filename, keyfile, {mode: 0x100})
     return keys
   }
 
