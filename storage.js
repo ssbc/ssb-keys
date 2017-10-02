@@ -59,18 +59,6 @@ module.exports = function (generate) {
       if(!u.hasSigil(keys.id)) keys.id = '@' + keys.public
       return keys
     } catch (_) { console.error(_.stack) }
-
-    //else, reconstruct legacy curve...
-
-    var curve = u.getTag(privateKey)
-
-    if(curve !== 'k256')
-      throw new Error('expected legacy curve (k256) but found:' + curve)
-
-    var fool_browserify = require
-    var ecc = fool_browserify('./eccjs')
-
-    return u.keysToJSON(ecc.restore(u.toBuffer(privateKey)), 'k256')
   }
 
   exports.load = function(filename, cb) {
