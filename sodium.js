@@ -1,4 +1,4 @@
-
+'use strict'
 var sodium = require('chloride')
 
 module.exports = {

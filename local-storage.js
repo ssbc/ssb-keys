@@ -1,4 +1,4 @@
-
+'use strict'
 var u = require('./util')
 
 function isFunction (f) {

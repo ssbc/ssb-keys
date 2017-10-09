@@ -1,3 +1,4 @@
+'use strict'
 var fs         = require('fs')
 var mkdirp     = require('mkdirp')
 var path       = require('path')
@@ -59,6 +60,8 @@ module.exports = function (generate) {
       if(!u.hasSigil(keys.id)) keys.id = '@' + keys.public
       return keys
     } catch (_) { console.error(_.stack) }
+
+    return u.keysToJSON(ecc.restore(u.toBuffer(privateKey)), 'k256')
   }
 
   exports.load = function(filename, cb) {
@@ -88,7 +91,7 @@ module.exports = function (generate) {
     var keyfile = constructKeys(keys, legacy)
     mkdirp(path.dirname(filename), function (err) {
       if(err) return cb(err)
-      fs.writeFile(filename, keyfile, {mode: 0400}, function(err) {
+      fs.writeFile(filename, keyfile, {mode: 0x100}, function(err) {
         if (err) return cb(err)
         cb(null, keys)
       })
@@ -100,9 +103,10 @@ module.exports = function (generate) {
     var keys = generate(curve)
     var keyfile = constructKeys(keys, legacy)
     mkdirp.sync(path.dirname(filename))
-    fs.writeFileSync(filename, keyfile, {mode: 0400})
+    fs.writeFileSync(filename, keyfile, {mode: 0x100})
     return keys
   }
 
   return exports
 }
+
