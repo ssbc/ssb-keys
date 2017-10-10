@@ -60,8 +60,6 @@ module.exports = function (generate) {
       if(!u.hasSigil(keys.id)) keys.id = '@' + keys.public
       return keys
     } catch (_) { console.error(_.stack) }
-
-    return u.keysToJSON(ecc.restore(u.toBuffer(privateKey)), 'k256')
   }
 
   exports.load = function(filename, cb) {
@@ -109,4 +107,6 @@ module.exports = function (generate) {
 
   return exports
 }
+
+
 
