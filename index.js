@@ -155,6 +155,10 @@ exports.unbox = function (boxed, keys) {
   var sk = sodium.crypto_sign_ed25519_sk_to_curve25519(u.toBuffer(keys.private || keys))
 
   var msg = pb.multibox_open(boxed, sk)
-  if(msg) return JSON.parse(''+msg)
+  try {
+    return JSON.parse(''+msg)
+  } catch (_) { }
+  return
 }
+
 
