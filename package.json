@@ -13,11 +13,15 @@
     "private-box": "^0.2.1"
   },
   "devDependencies": {
-    "tape": "^3.0.3"
+    "tape": "^4.9.0",
+    "typescript": "^2.8.1",
+    "@types/tape": "^4.2.32",
+    "ts-node": "^5.0.1"
   },
   "scripts": {
-    "test": "tape test/"
+    "test": "tape --require ts-node/register test/**/*.{ts,js}"
   },
+  "types": "types.d.ts",
   "author": "Paul Frazee <pfrazee@gmail.com>",
   "license": "MIT"
 }
