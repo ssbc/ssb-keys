@@ -30,9 +30,27 @@ tape('create and load sync', function (t) {
 tape('sign and verify a javascript object', function (t) {
 
   var obj = require('../package.json')
+
+  console.log(obj)
+
+  var keys = ssbkeys.generate()
+  var sig = ssbkeys.signObj(keys.private, obj)
+  console.log(sig)
+  t.ok(sig)
+  t.ok(ssbkeys.verifyObj(keys, sig))
+  t.ok(ssbkeys.verifyObj({public: keys.public}, sig))
+  t.end()
+
+})
+
+//allow sign and verify to also take a separate key
+//so that we can create signatures that cannot be used in other places.
+//(i.e. testnet) avoiding chosen protocol attacks.
+tape('sign and verify a hmaced object javascript object', function (t) {
+
+  var obj = require('../package.json')
   var hmac_key = crypto.randomBytes(32)
   var hmac_key2 = crypto.randomBytes(32)
-  console.log(obj)
 
   var keys = ssbkeys.generate()
   var sig = ssbkeys.signObj(keys.private, hmac_key, obj)
@@ -46,25 +64,25 @@ tape('sign and verify a javascript object', function (t) {
   //a different hmac_key fails to verify
   t.notOk(ssbkeys.verifyObj(keys, hmac_key2, sig))
   t.notOk(ssbkeys.verifyObj({public: keys.public}, hmac_key2, sig))
-  t.end()
 
-})
+  //assert that hmac_key may also be passed as base64
 
-//allow sign and verify to also take a separate key
-//so that we can create signatures that cannot be used in other places.
-//(i.e. testnet) avoiding chosen protocol attacks.
-tape('sign and verify a hmaced object javascript object', function (t) {
-
-  var obj = require('../package.json')
-
-  console.log(obj)
+  hmac_key = hmac_key.toString('base64')
+  hmac_key2 = hmac_key2.toString('base64')
 
   var keys = ssbkeys.generate()
-  var sig = ssbkeys.signObj(keys.private, obj)
+  var sig = ssbkeys.signObj(keys.private, hmac_key, obj)
   console.log(sig)
   t.ok(sig)
-  t.ok(ssbkeys.verifyObj(keys, sig))
-  t.ok(ssbkeys.verifyObj({public: keys.public}, sig))
+  //verify must be passed the key to correctly verify
+  t.notOk(ssbkeys.verifyObj(keys, sig))
+  t.notOk(ssbkeys.verifyObj({public: keys.public}, sig))
+  t.ok(ssbkeys.verifyObj(keys, hmac_key, sig))
+  t.ok(ssbkeys.verifyObj({public: keys.public}, hmac_key, sig))
+  //a different hmac_key fails to verify
+  t.notOk(ssbkeys.verifyObj(keys, hmac_key2, sig))
+  t.notOk(ssbkeys.verifyObj({public: keys.public}, hmac_key2, sig))
+
   t.end()
 
 })
@@ -89,6 +107,10 @@ tape('ed25519 id === "@" ++ pubkey', function (t) {
   t.end()
 
 })
+
+
+
+
 
 
 
