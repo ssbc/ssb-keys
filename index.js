@@ -125,7 +125,7 @@ exports.signObj = function (keys, hmac_key, obj) {
   if(!obj) obj = hmac_key, hmac_key = null
   var _obj = clone(obj)
   var b = new Buffer(JSON.stringify(_obj, null, 2))
-  if(hmac_key) b = hmac(b, hmac_key)
+  if(hmac_key) b = hmac(b, u.toBuffer(hmac_key))
   _obj.signature = sign(keys, b)
   return _obj
 }
@@ -136,7 +136,7 @@ exports.verifyObj = function (keys, hmac_key, obj) {
   var sig = obj.signature
   delete obj.signature
   var b = new Buffer(JSON.stringify(obj, null, 2))
-  if(hmac_key) b = hmac(b, hmac_key)
+  if(hmac_key) b = hmac(b, u.toBuffer(hmac_key))
   return verify(keys, sig, b)
 }
 
