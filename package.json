@@ -16,7 +16,7 @@
     "tape": "^3.0.3"
   },
   "scripts": {
-    "test": "tape test/"
+    "test": "tape test/*"
   },
   "author": "Paul Frazee <pfrazee@gmail.com>",
   "license": "MIT"
