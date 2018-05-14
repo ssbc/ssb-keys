@@ -74,7 +74,7 @@ module.exports = function (generate) {
   }
 
   exports.loadSync = function(filename) {
-    filename = toFile(filename, 'secret')
+    filename = toFile(filename)
     return reconstructKeys(fs.readFileSync(filename, 'ascii'))
   }
 
@@ -84,7 +84,7 @@ module.exports = function (generate) {
     if(isFunction(curve))
       cb = curve, curve = null
 
-    filename = toFile(filename, 'secret')
+    filename = toFile(filename)
     var keys = generate(curve)
     var keyfile = constructKeys(keys, legacy)
     mkdirp(path.dirname(filename), function (err) {
@@ -97,7 +97,7 @@ module.exports = function (generate) {
   }
 
   exports.createSync = function(filename, curve, legacy) {
-    filename = toFile(filename, 'secret')
+    filename = toFile(filename)
     var keys = generate(curve)
     var keyfile = constructKeys(keys, legacy)
     mkdirp.sync(path.dirname(filename))
