@@ -167,10 +167,10 @@ exports.unboxBody = function (boxed, key) {
 
 exports.unbox = function (boxed, keys) {
   boxed = u.toBuffer(boxed)
-  var sk = sodium.crypto_sign_ed25519_sk_to_curve25519(u.toBuffer(keys.private || keys))
 
-  var msg = pb.multibox_open(boxed, sk)
   try {
+    var sk = sodium.crypto_sign_ed25519_sk_to_curve25519(u.toBuffer(keys.private || keys))
+    var msg = pb.multibox_open(boxed, sk)
     return JSON.parse(''+msg)
   } catch (_) { }
   return
