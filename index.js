@@ -157,6 +157,7 @@ exports.unboxKey = function (boxed, keys) {
 }
 
 exports.unboxBody = function (boxed, key) {
+  if(!key) return null
   boxed = u.toBuffer(boxed)
   key = u.toBuffer(key)
   var msg = pb.multibox_open_body(boxed, key)
@@ -175,6 +176,4 @@ exports.unbox = function (boxed, keys) {
   } catch (_) { }
   return
 }
-
-
 
