@@ -38,7 +38,7 @@ exports.getTag = function getTag (string) {
 
 exports.toBuffer = function (buf) {
   if(buf == null) return buf
-  if(Buffer.isBuffer(buf)) throw new Error('already a buffer')
+  if(Buffer.isBuffer(buf)) return buf
   var i = buf.indexOf('.')
   var start = (exports.hasSigil(buf)) ? 1 : 0
   return new Buffer(buf.substring(start, ~i ? i : buf.length), 'base64')

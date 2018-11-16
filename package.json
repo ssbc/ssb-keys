@@ -1,7 +1,7 @@
 {
   "name": "ssb-keys",
   "description": "keyfile operations for ssb",
-  "version": "7.0.14",
+  "version": "7.1.3",
   "homepage": "https://github.com/ssbc/ssb-keys",
   "repository": {
     "type": "git",
@@ -10,11 +10,11 @@
   "dependencies": {
     "chloride": "^2.2.8",
     "mkdirp": "~0.5.0",
-    "private-box": "^0.2.1"
+    "private-box": "^0.3.0"
   },
   "devDependencies": {
     "tape": "^4.9.0",
-    "typescript": "^2.8.1",
+    "typescript": "^3.1.0",
     "@types/tape": "^4.2.32",
     "ts-node": "^5.0.1"
   },

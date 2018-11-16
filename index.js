@@ -125,7 +125,7 @@ exports.signObj = function (keys, hmac_key, obj) {
   if(!obj) obj = hmac_key, hmac_key = null
   var _obj = clone(obj)
   var b = new Buffer(JSON.stringify(_obj, null, 2))
-  if(hmac_key) b = hmac(b, hmac_key)
+  if(hmac_key) b = hmac(b, u.toBuffer(hmac_key))
   _obj.signature = sign(keys, b)
   return _obj
 }
@@ -136,7 +136,7 @@ exports.verifyObj = function (keys, hmac_key, obj) {
   var sig = obj.signature
   delete obj.signature
   var b = new Buffer(JSON.stringify(obj, null, 2))
-  if(hmac_key) b = hmac(b, hmac_key)
+  if(hmac_key) b = hmac(b, u.toBuffer(hmac_key))
   return verify(keys, sig, b)
 }
 
@@ -150,15 +150,30 @@ exports.box = function (msg, recipients) {
   return pb.multibox(msg, recipients).toString('base64')+'.box'
 }
 
-exports.unbox = function (boxed, keys) {
+exports.unboxKey = function (boxed, keys) {
   boxed = u.toBuffer(boxed)
   var sk = sodium.crypto_sign_ed25519_sk_to_curve25519(u.toBuffer(keys.private || keys))
+  return pb.multibox_open_key(boxed, sk)
+}
 
-  var msg = pb.multibox_open(boxed, sk)
+exports.unboxBody = function (boxed, key) {
+  if(!key) return null
+  boxed = u.toBuffer(boxed)
+  key = u.toBuffer(key)
+  var msg = pb.multibox_open_body(boxed, key)
   try {
+    return JSON.parse(''+msg)
+  } catch (_) { }
+}
+
+exports.unbox = function (boxed, keys) {
+  boxed = u.toBuffer(boxed)
+
+  try {
+    var sk = sodium.crypto_sign_ed25519_sk_to_curve25519(u.toBuffer(keys.private || keys))
+    var msg = pb.multibox_open(boxed, sk)
     return JSON.parse(''+msg)
   } catch (_) { }
   return
 }
-
 

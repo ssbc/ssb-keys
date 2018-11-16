@@ -30,7 +30,7 @@ module.exports = function (generate) {
   //(DE)SERIALIZE KEYS
 
   function constructKeys(keys, legacy) {
-    if(!keys) throw new Error('*must* pass in keys') 
+    if(!keys) throw new Error('*must* pass in keys')
 
     return [
     '# this is your SECRET name.',
@@ -74,7 +74,7 @@ module.exports = function (generate) {
   }
 
   exports.loadSync = function(filename) {
-    filename = toFile(filename, 'secret')
+    filename = toFile(filename)
     return reconstructKeys(fs.readFileSync(filename, 'ascii'))
   }
 
@@ -84,12 +84,12 @@ module.exports = function (generate) {
     if(isFunction(curve))
       cb = curve, curve = null
 
-    filename = toFile(filename, 'secret')
+    filename = toFile(filename)
     var keys = generate(curve)
     var keyfile = constructKeys(keys, legacy)
     mkdirp(path.dirname(filename), function (err) {
       if(err) return cb(err)
-      fs.writeFile(filename, keyfile, {mode: 0x100}, function(err) {
+      fs.writeFile(filename, keyfile, {mode: 0x100, flag: 'wx'}, function(err) {
         if (err) return cb(err)
         cb(null, keys)
       })
@@ -97,11 +97,11 @@ module.exports = function (generate) {
   }
 
   exports.createSync = function(filename, curve, legacy) {
-    filename = toFile(filename, 'secret')
+    filename = toFile(filename)
     var keys = generate(curve)
     var keyfile = constructKeys(keys, legacy)
     mkdirp.sync(path.dirname(filename))
-    fs.writeFileSync(filename, keyfile, {mode: 0x100})
+    fs.writeFileSync(filename, keyfile, {mode: 0x100, flag: 'wx'})
     return keys
   }
 

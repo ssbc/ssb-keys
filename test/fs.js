@@ -30,3 +30,16 @@ tape('create and load presigil-legacy', function (t) {
 
 })
 
+tape('prevent clobbering existing keys', function (t) {
+
+  fs.writeFileSync(path, 'this file intentionally left blank', 'utf8')
+  t.throws(function () {
+    ssbkeys.createSync(path)
+  })
+  ssbkeys.create(path, function (err) {
+    t.ok(err)
+    fs.unlinkSync(path)
+    t.end()
+  })
+
+})
