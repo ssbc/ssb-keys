@@ -1,5 +1,5 @@
-import * as ssbkeys from '..';
-import * as tape from 'tape';
+import * as ssbkeys from '..'
+import * as tape from 'tape'
 import * as crypto from 'crypto'
 const path = '/tmp/ssb-keys_' + Date.now()
 
