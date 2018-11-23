@@ -18,8 +18,7 @@
     "dtslint": "0.3.0"
   },
   "scripts": {
-    "test": "tape test/*",
-    "dtslint": "dtslint types"
+    "test": "tape test/* && dtslint types"
   },
   "types": "types",
   "author": "Paul Frazee <pfrazee@gmail.com>",
