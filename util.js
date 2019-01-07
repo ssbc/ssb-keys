@@ -22,11 +22,11 @@ function tag (key, tag) {
 exports.keysToJSON = function keysToJSON(keys, curve) {
   curve = (keys.curve || curve)
 
-  var pub = tag(keys.public.toString('base64'), curve)
+  var pub = tag(keys.public, curve)
   return {
     curve: curve,
     public: pub,
-    private: keys.private ? tag(keys.private.toString('base64'), curve) : undefined,
+    private: keys.private ? tag(keys.private, curve) : undefined,
     id: '@'+(curve === 'ed25519' ? pub : exports.hash(pub))
   }
 }
