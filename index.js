@@ -150,9 +150,15 @@ exports.box = function (msg, recipients) {
   return pb.multibox(msg, recipients).toString('base64')+'.box'
 }
 
+function ssbSecretKeyToPrivateBoxSecret (keys) {
+  return sodium.crypto_sign_ed25519_sk_to_curve25519(u.toBuffer(keys.private || keys))
+}
+
+exports.ssbSecretKeyToPrivateBoxSecret = ssbSecretKeyToPrivateBoxSecret
+
 exports.unboxKey = function (boxed, keys) {
   boxed = u.toBuffer(boxed)
-  var sk = sodium.crypto_sign_ed25519_sk_to_curve25519(u.toBuffer(keys.private || keys))
+  var sk = ssbSecretKeyToPrivateBoxSecret(keys)
   return pb.multibox_open_key(boxed, sk)
 }
 
@@ -170,7 +176,7 @@ exports.unbox = function (boxed, keys) {
   boxed = u.toBuffer(boxed)
 
   try {
-    var sk = sodium.crypto_sign_ed25519_sk_to_curve25519(u.toBuffer(keys.private || keys))
+    var sk = ssbSecretKeyToPrivateBoxSecret(keys)
     var msg = pb.multibox_open(boxed, sk)
     return JSON.parse(''+msg)
   } catch (_) { }
