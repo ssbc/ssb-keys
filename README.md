@@ -77,6 +77,10 @@ with [private-box](https://github.com/auditdrivencrypto/private-box)
 decrypt a message encrypted with `box`. If the `boxed` successfully decrypted,
 the parsed JSON is returned, if not, `undefined` is returned.
 
+### ssbSecretKeyToPrivateBoxSecret(keys)
+
+Convert from the ed25519 secret key (ssb secret key type) to the curve25519 key type that is used by `private-box`.
+
 ### LICENSE
 
 MIT
