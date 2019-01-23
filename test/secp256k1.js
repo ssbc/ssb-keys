@@ -33,7 +33,7 @@ tape('sign and verify a javascript object', function (t) {
 
   console.log(obj)
 
-  var keys = ssbkeys.generate()
+  var keys = ssbkeys.generate('secp256k1')
   var sig = ssbkeys.signObj(keys.private, obj)
   console.log(sig)
   t.ok(sig)
@@ -52,7 +52,7 @@ tape('sign and verify a hmaced object javascript object', function (t) {
   var hmac_key = crypto.randomBytes(32)
   var hmac_key2 = crypto.randomBytes(32)
 
-  var keys = ssbkeys.generate()
+  var keys = ssbkeys.generate('secp256k1')
   var sig = ssbkeys.signObj(keys.private, hmac_key, obj)
   console.log(sig)
   t.ok(sig)
@@ -70,7 +70,7 @@ tape('sign and verify a hmaced object javascript object', function (t) {
   hmac_key = hmac_key.toString('base64')
   hmac_key2 = hmac_key2.toString('base64')
 
-  var keys = ssbkeys.generate()
+  var keys = ssbkeys.generate('secp256k1')
   var sig = ssbkeys.signObj(keys.private, hmac_key, obj)
   console.log(sig)
   t.ok(sig)

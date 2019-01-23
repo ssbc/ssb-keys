@@ -42,7 +42,6 @@ curves.secp256k1 = require('./secp256k1')
 
 function getCurve(keys) {
   var curve = keys.curve
-
   if(!keys.curve && isString(keys.public))
     keys = keys.public
 
@@ -101,7 +100,6 @@ function sign (keys, msg) {
   if(!isBuffer(msg))
     throw new Error('msg should be buffer')
   var curve = getCurve(keys)
-
   return curves[curve]
     .sign(u.toBuffer(keys.private || keys), msg)
     .toString('base64')+'.sig.'+curve
