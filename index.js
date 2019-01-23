@@ -38,6 +38,7 @@ function isString(s) {
 
 var curves = {}
 curves.ed25519 = require('./sodium')
+curves.secp256k1 = require('./secp256k1')
 
 function getCurve(keys) {
   var curve = keys.curve
