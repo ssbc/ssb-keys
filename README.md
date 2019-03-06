@@ -66,8 +66,8 @@ Output is in the form
 
 - The public key consists of 32 random bytes base64 encoded.
 - The private key consists of 64 bytes base64 encoded.
-  - The first 32 bytes of the private key are identical to the public key.
-  - The remaining 32 bytes of the private key are the 32 random bytes which make up the actual secret part of the private key.
+  - The first 32 bytes of the private key are the 32 random bytes which make up the actual secret part of the private key.
+  - The remaining 32 bytes of the private key are identical to the public key.
 
 ### signObj(keys, hmac_key?, obj)
 
