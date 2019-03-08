@@ -140,6 +140,8 @@ exports.verifyObj = function (keys, hmac_key, obj) {
   return verify(keys, sig, b)
 }
 
+var MAX_PRIVATEBOX_RECIPIENTS = 15
+
 exports.box = function (msg, recipients) {
   msg = new Buffer(JSON.stringify(msg))
 
@@ -147,20 +149,20 @@ exports.box = function (msg, recipients) {
     return sodium.crypto_sign_ed25519_pk_to_curve25519(u.toBuffer(keys.public || keys))
   })
 
-  return pb.multibox(msg, recipients).toString('base64')+'.box'
+  return pb.multibox(msg, recipients, MAX_PRIVATEBOX_RECIPIENTS).toString('base64')+'.box'
 }
 
 exports.unboxKey = function (boxed, keys) {
   boxed = u.toBuffer(boxed)
   var sk = sodium.crypto_sign_ed25519_sk_to_curve25519(u.toBuffer(keys.private || keys))
-  return pb.multibox_open_key(boxed, sk)
+  return pb.multibox_open_key(boxed, sk, MAX_PRIVATEBOX_RECIPIENTS)
 }
 
 exports.unboxBody = function (boxed, key) {
   if(!key) return null
   boxed = u.toBuffer(boxed)
   key = u.toBuffer(key)
-  var msg = pb.multibox_open_body(boxed, key)
+  var msg = pb.multibox_open_body(boxed, key, MAX_PRIVATEBOX_RECIPIENTS)
   try {
     return JSON.parse(''+msg)
   } catch (_) { }
@@ -171,7 +173,7 @@ exports.unbox = function (boxed, keys) {
 
   try {
     var sk = sodium.crypto_sign_ed25519_sk_to_curve25519(u.toBuffer(keys.private || keys))
-    var msg = pb.multibox_open(boxed, sk)
+    var msg = pb.multibox_open(boxed, sk, MAX_PRIVATEBOX_RECIPIENTS)
     return JSON.parse(''+msg)
   } catch (_) { }
   return
