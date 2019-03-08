@@ -57,8 +57,8 @@ Output is in the form
 
     {
       "curve": "ed25519", // Our current eliptic curve
-      "public": "fHlqm8WWP4ODtsuXazhJR66YrmhOWcmqae4LxXPHn0o=.ed25519", // format: public_key.curve
-      "private": "++uy5C8c0q+RpkyDQogzYSN4py3gL3m/qCN2YKE1snp8eWqbxZY/g4O2y5drOElHrpiuaE5Zyapp7gvFc8efSg==.ed25519", // format: private_key.curve
+      "public": "fHlqm8WWP4ODtsuXazhJR66YrmhOWcmqae4LxXPHn0o=.ed25519", // format: key.curve
+      "private": "++uy5C8c0q+RpkyDQogzYSN4py3gL3m/qCN2YKE1snp8eWqbxZY/g4O2y5drOElHrpiuaE5Zyapp7gvFc8efSg==.ed25519", // format: key.curve
       "id": "@fHlqm8WWP4ODtsuXazhJR66YrmhOWcmqae4LxXPHn0o=" // format: @public_key
     }
 
