@@ -53,6 +53,22 @@ generate a key, with optional seed.
 curve defaults to `ed25519` (and no other type is currently supported)
 seed should be a 32 byte buffer.
 
+Output is in the form
+
+    {
+      "curve": "ed25519", // Our current eliptic curve
+      "public": "fHlqm8WWP4ODtsuXazhJR66YrmhOWcmqae4LxXPHn0o=.ed25519", // format: public_key.curve
+      "private": "++uy5C8c0q+RpkyDQogzYSN4py3gL3m/qCN2YKE1snp8eWqbxZY/g4O2y5drOElHrpiuaE5Zyapp7gvFc8efSg==.ed25519", // format: private_key.curve
+      "id": "@fHlqm8WWP4ODtsuXazhJR66YrmhOWcmqae4LxXPHn0o=" // format: @public_key
+    }
+
+**Note:**
+
+- The public key consists of 32 bytes base64 encoded.
+- The private key consists of 64 bytes base64 encoded.
+  - The first 32 bytes of the private key are the 32 random bytes which make up the actual secret part of the private key.
+  - The remaining 32 bytes of the private key are identical to the public key.
+
 ### signObj(keys, hmac_key?, obj)
 
 signs a javascript object, and then adds a signature property to it.
