@@ -34,6 +34,12 @@ ssbkeys.verifyObj(k, hmac_key, obj) // => true
 
 ## api
 
+### hash (data, encoding)
+Returns the sha256 hash of a given data. If encoding is not provided then it is assumed to be _binary_.
+
+### getTag (string)
+The SSB IDs contain a tag at the end. This function returns it. So if you have a string like `@gaQw6zD4pHrg8zmrqku24zTSAINhRg=.ed25519` this function would return `ed25519`. This is useful as SSB start providing features for different encryption methods and cyphers.
+
 ### loadOrCreateSync (filename)
 
 Load a file containing the your private key. the file will also
@@ -92,6 +98,13 @@ with [private-box](https://github.com/auditdrivencrypto/private-box)
 
 decrypt a message encrypted with `box`. If the `boxed` successfully decrypted,
 the parsed JSON is returned, if not, `undefined` is returned.
+
+### unboxKey (boxed, keys)
+TODO: Needs more info.
+
+### unboxBody (boxed, key)
+decrypt a message. 
+TODO: fill this with extra info.
 
 ### LICENSE
 
