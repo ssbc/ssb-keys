@@ -169,7 +169,8 @@ exports.unboxBody = function (boxed, key) {
 exports.unbox = function (boxed, keys) {
   boxed = u.toBuffer(boxed)
 
-  var sk = keys._sk = keys._sk || sodium.crypto_sign_ed25519_sk_to_curve25519(u.toBuffer(keys.private || keys))
+  var sk = keys._exchangeKey || sodium.crypto_sign_ed25519_sk_to_curve25519(u.toBuffer(keys.private || keys))
+  if(keys.private) keys._exchangeKey = sk //if keys is an object, cache the curve key.
   try {
     var msg = pb.multibox_open(boxed, sk)
     return JSON.parse(''+msg)
