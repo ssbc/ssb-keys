@@ -14,7 +14,7 @@ var keys = ssbkeys.loadOrCreateSync(filename)
 }*/
 
 //but for testing, .generate() is useful.
-var keys = ssbkeys.generate()
+var keys = ssbkeys.generate('feedType')
 /* => {
   id: String,
   public: String,
@@ -34,7 +34,7 @@ ssbkeys.verifyObj(k, hmac_key, obj) // => true
 
 ## api
 
-### loadOrCreateSync (filename)
+### loadOrCreateSync (filename, feedType)
 
 Load a file containing the your private key. the file will also
 contain a comment with a warning about keeping the file secret.
@@ -47,10 +47,12 @@ variations and parts `loadOrCreate` (async), `load`, `create`
 `createSync` `loadSync`. But since you only need to load once,
 using the combined function is easiest.
 
-### generate(curve, seed)
+The `feedType` argument is optional and defaults to `ed25519`.
+
+### generate(feedType, seed)
 
 generate a key, with optional seed.
-curve defaults to `ed25519` (and no other type is currently supported)
+feedType defaults to `ed25519` but also supports `ed25519.test`
 seed should be a 32 byte buffer.
 
 ### signObj(keys, hmac_key?, obj)
