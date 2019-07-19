@@ -177,3 +177,15 @@ exports.unbox = function (boxed, keys) {
   } catch (_) { }
   return
 }
+
+exports.secretBox = function secretBox (data, key) {
+  if(!data) return
+  var ptxt = Buffer.from(JSON.stringify(data))
+  return sodium.crypto_secretbox_easy(ptxt, key.slice(0, 24), key)
+}
+
+exports.secretUnbox = function secretUnbox (ctxt, key) {
+  var ptxt = sodium.crypto_secretbox_open_easy(ctxt, key.slice(0, 24), key)
+  if(!ptxt) return
+  return JSON.parse(ptxt.toString())
+}

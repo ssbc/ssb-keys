@@ -137,6 +137,14 @@ decrypt a message `content` with a `msg_key`. returns the plaintext message cont
 this is not the correct `msg_key`. The purpose of `unboxBody` and `unboxKey` is so support
 messages that are shared then later revealed.
 
+### secretBox (obj, key) => boxed
+
+symmetrically encrypt an object with `key` (a buffer)
+
+### secretUnbox (boxed, key) => obj
+
+symmetrically decrypt an object with `key` (a buffer)
+
 ### LICENSE
 
 MIT
