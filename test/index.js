@@ -70,18 +70,18 @@ tape('sign and verify a hmaced object javascript object', function (t) {
   hmac_key = hmac_key.toString('base64')
   hmac_key2 = hmac_key2.toString('base64')
 
-  var keys = ssbkeys.generate()
-  var sig = ssbkeys.signObj(keys.private, hmac_key, obj)
+  var otherKeys = ssbkeys.generate()
+  var otherSig = ssbkeys.signObj(otherKeys.private, hmac_key, obj)
   console.log(sig)
   t.ok(sig)
   //verify must be passed the key to correctly verify
-  t.notOk(ssbkeys.verifyObj(keys, sig))
-  t.notOk(ssbkeys.verifyObj({public: keys.public}, sig))
+  t.notOk(ssbkeys.verifyObj(otherKeys, otherSig))
+  t.notOk(ssbkeys.verifyObj({public: otherKeys.public}, otherSig))
   t.ok(ssbkeys.verifyObj(keys, hmac_key, sig))
-  t.ok(ssbkeys.verifyObj({public: keys.public}, hmac_key, sig))
+  t.ok(ssbkeys.verifyObj({public: otherKeys.public}, hmac_key, otherSig))
   //a different hmac_key fails to verify
-  t.notOk(ssbkeys.verifyObj(keys, hmac_key2, sig))
-  t.notOk(ssbkeys.verifyObj({public: keys.public}, hmac_key2, sig))
+  t.notOk(ssbkeys.verifyObj(otherKeys, hmac_key2, otherSig))
+  t.notOk(ssbkeys.verifyObj({public: otherKeys.public}, hmac_key2, otherSig))
 
   t.end()
 

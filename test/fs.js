@@ -1,6 +1,5 @@
 var tape = require('tape')
 var ssbkeys = require('../')
-var crypto = require('crypto')
 var path = '/tmp/ssb-keys_'+Date.now()
 var fs = require('fs')
 
