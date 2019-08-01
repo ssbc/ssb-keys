@@ -7,7 +7,6 @@ module.exports = {
 
     var keys = seed ? sodium.crypto_sign_seed_keypair(seed) : sodium.crypto_sign_keypair()
     return {
-      feedType: 'ed25519',
       public: keys.publicKey,
 
       //so that this works with either sodium
