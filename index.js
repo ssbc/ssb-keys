@@ -1,10 +1,7 @@
 'use strict'
 var sodium     = require('chloride')
-
 var pb         = require('private-box')
-
 var u          = require('./util')
-
 var isBuffer = Buffer.isBuffer
 
 //UTILS
@@ -22,8 +19,6 @@ var hmac = sodium.crypto_auth
 
 exports.hash = u.hash
 
-exports.getTag = u.getTag
-
 function isObject (o) {
   return 'object' === typeof o
 }
@@ -33,38 +28,63 @@ function isString(s) {
   return 'string' === typeof s
 }
 
-var curves = {}
-curves.ed25519 = require('./sodium')
+const feedTypes = {
+  ed25519: require('./sodium'),
+}
 
-function getCurve(keys) {
-  var curve = keys.curve
-
-  if(!keys.curve && isString(keys.public))
-    keys = keys.public
-
-  if(!curve && isString(keys))
-    curve = u.getTag(keys)
-
-  if(!curves[curve]) {
-    throw new Error(
-      'unkown curve:' + curve +
-      ' expected: '+Object.keys(curves)
-    )
+exports.use = (name, object) => {
+  if (typeof name !== 'string' || name.length === 0) {
+    throw new Error(`Invalid name: "${name}", expected string with non-zero length`)
   }
 
-  return curve
+  const requiredMethods = [
+    'generate',
+    'sign',
+    'verify'
+  ]
+
+  const isNotObject = typeof object !== 'object'
+  const isInvalidObject = isNotObject || requiredMethods.every(methodName => {
+    typeof object[methodName] === 'function'
+  })
+
+  if (isInvalidObject) {
+    const expectedMethods = requiredMethods.join(', ')
+    throw new Error(`Invalid objectMissing required methods, expected: ${expectedMethods}`)
+  }
+
+  if (feedTypes[name] != null) {
+    throw new Error(`Duplicate feed type: "${name}"`)
+  }
+
+  feedTypes[name] = object
+}
+
+function getFeedType(keys) {
+  let { feedType } = keys
+
+  if(!keys.feedType && isString(keys.public))
+    keys = keys.public
+
+  if(!feedType && isString(keys))
+    feedType = u.getSuffix(keys)
+
+  if(!feedTypes[feedType]) {
+    throw new Error(`unkown feed type: "${feedType}", expected: "${Object.keys(feedTypes)}"`)
+  }
+
+  return feedType
 }
 
 //this should return a key pair:
-// {curve: curve, public: Buffer, private: Buffer}
+// { feedType: string, public: Buffer, private: Buffer}
+exports.generate = function (feedType, seed) {
+  feedType = feedType || 'ed25519'
 
-exports.generate = function (curve, seed) {
-  curve = curve || 'ed25519'
+  if(feedTypes[feedType] == null)
+    throw new Error(`unknown feed type: "${feedType}"`)
 
-  if(!curves[curve])
-    throw new Error('unknown curve:'+curve)
-
-  return u.keysToJSON(curves[curve].generate(seed), curve)
+  return u.keysToJSON(feedTypes[feedType].generate(seed), feedType)
 }
 
 //import functions for loading/saving keys from storage
@@ -96,11 +116,14 @@ function sign (keys, msg) {
     msg = new Buffer(msg)
   if(!isBuffer(msg))
     throw new Error('msg should be buffer')
-  var curve = getCurve(keys)
+  var feedType = getFeedType(keys)
 
-  return curves[curve]
+  const prefix = feedTypes[feedType]
     .sign(u.toBuffer(keys.private || keys), msg)
-    .toString('base64')+'.sig.'+curve
+    .toString('base64')
+  const suffix = `.sig.${feedType}`
+
+  return prefix + suffix
 
 }
 
@@ -109,7 +132,7 @@ function sign (keys, msg) {
 function verify (keys, sig, msg) {
   if(isObject(sig))
     throw new Error('signature should be base64 string, did you mean verifyObj(public, signed_obj)')
-  return curves[getCurve(keys)].verify(
+  return feedTypes[getFeedType(keys)].verify(
     u.toBuffer(keys.public || keys),
     u.toBuffer(sig),
     isBuffer(msg) ? msg : new Buffer(msg)

@@ -40,7 +40,7 @@ in the below methods, `keys` is an object of the following form:
 
 ``` js
 {
-  "curve": "ed25519",
+  "feedType": "ed25519",
   "public": "<base64_public_key>.ed25519",
   "private": "<base64_private_key>.ed25519",
   "id": "@<base64_public_key>.ed25519"
@@ -56,8 +56,8 @@ Comment lines are prefixed with `#` after removing them the result is valid JSON
 ### hash (data, encoding) => id
 Returns the sha256 hash of a given data. If encoding is not provided then it is assumed to be _binary_.
 
-### getTag (ssb_id) => tag
-The SSB ids contain a tag at the end. This function returns it.
+### getFeedType (ssbId) => feedType
+Each SSB ID contains a feed type at the end. This function returns it.
 So if you have a string like `@gaQw6zD4pHrg8zmrqku24zTSAINhRg=.ed25519` this function would return `ed25519`.
 This is useful as SSB start providing features for different encryption methods and cyphers.
 
@@ -85,13 +85,15 @@ If a sync file access method is not available, `loadOrCreate` can be called with
 callback. that callback will be called with `cb(null, keys)`. If loading
 the keys errored, new keys are created.
 
-### generate(curve, seed) => keys
+### generate(feedType, seed) => keys
 
 generate a key, with optional seed.
-curve defaults to `ed25519` (and no other type is currently supported)
+feed type defaults to `ed25519` (and no other type is currently supported)
 seed should be a 32 byte buffer.
 
 `keys` is an object as described in [`keys`](#keys) section.
+
+New feed types can be added with `ssbKeys.use()`.
 
 ### signObj(keys, hmac_key?, obj)
 
@@ -144,6 +146,10 @@ symmetrically encrypt an object with `key` (a buffer)
 ### secretUnbox (boxed, key) => obj
 
 symmetrically decrypt an object with `key` (a buffer)
+
+### use(feedTypeName, { generate, sign, verify }) => ssbKeys
+
+add new feed type to be used with `ssbKeys.generate()`
 
 ### LICENSE
 

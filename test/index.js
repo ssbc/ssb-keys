@@ -108,15 +108,32 @@ tape('ed25519 id === "@" ++ pubkey', function (t) {
 
 })
 
+tape('alternative "test" feed type', function (t) {
+  const newFeedType = {
+    name: 'test',
+    object: {
+    generate: () => {
+      return {
+        name: newFeedType.name,
+        public: crypto.randomBytes(32).toString('hex'),
+        private: crypto.randomBytes(32).toString('hex')
+      }
+    },
+    sign: (privateKey, message) => message,
+    verify: () => true
+    }
+  }
 
+  ssbkeys.use(newFeedType.name, newFeedType.object)
 
+  const keys = ssbkeys.generate(newFeedType.name)
+  t.assert(keys.id.endsWith(newFeedType.name), 'using new test feed type')
 
+  const signedFoo = ssbkeys.signObj(keys, 'foo')
+  t.assert(signedFoo, 'foo', 'signature works')
 
-
-
-
-
-
-
-
+  const isValid = ssbkeys.verifyObj(keys, 'foo')
+  t.assert(isValid, true, 'verification works')
+  t.end()
+})
 

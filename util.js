@@ -14,24 +14,24 @@ exports.hasSigil = function hasSigil (s) {
   return /^(@|%|&)/.test(s)
 }
 
-function tag (key, tag) {
-  if(!tag) throw new Error('no tag for:' + key.toString('base64'))
-  return key.toString('base64')+'.' + tag.replace(/^\./, '')
+function setFeedType (key, feedType) {
+  if(!feedType) throw new Error('no feedType for:' + key.toString('base64'))
+  return key.toString('base64')+'.' + feedType.replace(/^\./, '')
 }
 
-exports.keysToJSON = function keysToJSON(keys, curve) {
-  curve = (keys.curve || curve)
+exports.keysToJSON = function keysToJSON(keys, feedType) {
+  feedType = keys.feedType || feedType
 
-  var pub = tag(keys.public, curve)
+  var pub = setFeedType(keys.public, feedType)
   return {
-    curve: curve,
+    feedType,
     public: pub,
-    private: keys.private ? tag(keys.private, curve) : undefined,
+    private: keys.private ? setFeedType(keys.private, feedType) : undefined,
     id: '@' + pub
   }
 }
 
-exports.getTag = function getTag (string) {
+exports.getSuffix  = function (string) {
   var i = string.indexOf('.')
   return string.substring(i+1)
 }
