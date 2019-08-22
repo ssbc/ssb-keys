@@ -44,13 +44,14 @@ exports.use = (name, object) => {
   ]
 
   const isNotObject = typeof object !== 'object'
-  const isInvalidObject = isNotObject || requiredMethods.every(methodName => {
-    typeof object[methodName] === 'function'
-  })
+  const isInvalidObject = isNotObject || requiredMethods.some(methodName => 
+    typeof object[methodName] !== 'function'
+  )
 
   if (isInvalidObject) {
     const expectedMethods = requiredMethods.join(', ')
-    throw new Error(`Invalid objectMissing required methods, expected: ${expectedMethods}`)
+    console.log(object)
+    throw new Error(`Invalid object. Missing required methods, expected: ${expectedMethods}`)
   }
 
   if (curves[name] != null) {
