@@ -28,7 +28,7 @@ function isString(s) {
   return 'string' === typeof s
 }
 
-const feedTypes = {
+const curves = {
   ed25519: require('./sodium'),
 }
 
@@ -53,38 +53,38 @@ exports.use = (name, object) => {
     throw new Error(`Invalid objectMissing required methods, expected: ${expectedMethods}`)
   }
 
-  if (feedTypes[name] != null) {
+  if (curves[name] != null) {
     throw new Error(`Duplicate feed type: "${name}"`)
   }
 
-  feedTypes[name] = object
+  curves[name] = object
 }
 
 function getFeedType(keys) {
-  let { feedType } = keys
+  let { curve } = keys
 
-  if(!keys.feedType && isString(keys.public))
+  if(!keys.curve && isString(keys.public))
     keys = keys.public
 
-  if(!feedType && isString(keys))
-    feedType = u.getSuffix(keys)
+  if(!curve && isString(keys))
+    curve = u.getSuffix(keys)
 
-  if(!feedTypes[feedType]) {
-    throw new Error(`unkown feed type: "${feedType}", expected: "${Object.keys(feedTypes)}"`)
+  if(!curves[curve]) {
+    throw new Error(`unkown feed type: "${curve}", expected: "${Object.keys(curves)}"`)
   }
 
-  return feedType
+  return curve
 }
 
 //this should return a key pair:
-// { feedType: string, public: Buffer, private: Buffer}
-exports.generate = function (feedType, seed) {
-  feedType = feedType || 'ed25519'
+// { curve: string, public: Buffer, private: Buffer}
+exports.generate = function (curve, seed) {
+  curve = curve || 'ed25519'
 
-  if(feedTypes[feedType] == null)
-    throw new Error(`unknown feed type: "${feedType}"`)
+  if(curves[curve] == null)
+    throw new Error(`unknown feed type: "${curve}"`)
 
-  return u.keysToJSON(feedTypes[feedType].generate(seed), feedType)
+  return u.keysToJSON(curves[curve].generate(seed), curve)
 }
 
 //import functions for loading/saving keys from storage
@@ -116,12 +116,12 @@ function sign (keys, msg) {
     msg = new Buffer(msg)
   if(!isBuffer(msg))
     throw new Error('msg should be buffer')
-  var feedType = getFeedType(keys)
+  var curve = getFeedType(keys)
 
-  const prefix = feedTypes[feedType]
+  const prefix = curves[curve]
     .sign(u.toBuffer(keys.private || keys), msg)
     .toString('base64')
-  const suffix = `.sig.${feedType}`
+  const suffix = `.sig.${curve}`
 
   return prefix + suffix
 
@@ -132,7 +132,7 @@ function sign (keys, msg) {
 function verify (keys, sig, msg) {
   if(isObject(sig))
     throw new Error('signature should be base64 string, did you mean verifyObj(public, signed_obj)')
-  return feedTypes[getFeedType(keys)].verify(
+  return curves[getFeedType(keys)].verify(
     u.toBuffer(keys.public || keys),
     u.toBuffer(sig),
     isBuffer(msg) ? msg : new Buffer(msg)
