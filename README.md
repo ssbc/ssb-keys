@@ -14,7 +14,7 @@ var keys = ssbkeys.loadOrCreateSync(filename)
 }*/
 
 //but for testing, .generate() is useful.
-var keys = ssbkeys.generate()
+var keys = ssbkeys.generate('feedType')
 /* => {
   id: String,
   public: String,
@@ -56,8 +56,10 @@ Comment lines are prefixed with `#` after removing them the result is valid JSON
 ### hash (data, encoding) => id
 Returns the sha256 hash of a given data. If encoding is not provided then it is assumed to be _binary_.
 
-### getFeedType (ssbId) => curve
+### getFeedType (ssbId) => feedType
+
 Each SSB ID contains a feed type at the end. This function returns it.
+
 So if you have a string like `@gaQw6zD4pHrg8zmrqku24zTSAINhRg=.ed25519` this function would return `ed25519`.
 This is useful as SSB start providing features for different encryption methods and cyphers.
 
@@ -77,8 +79,6 @@ variations and parts `loadOrCreate` (async), `load`, `create`
 `createSync` `loadSync`. But since you only need to load once,
 using the combined function is easiest.
 
-`keys` is an object as described in [`keys`](#keys) section.
-
 ### loadOrCreate (filename, cb)
 
 If a sync file access method is not available, `loadOrCreate` can be called with a
@@ -88,7 +88,9 @@ the keys errored, new keys are created.
 ### generate(curve, seed) => keys
 
 generate a key, with optional seed.
-feed type defaults to `ed25519` (and no other type is currently supported)
+
+feedType defaults to `ed25519` but also supports `ed25519.test`
+
 seed should be a 32 byte buffer.
 
 `keys` is an object as described in [`keys`](#keys) section.
@@ -110,7 +112,6 @@ The fine details of the signature format are described in the [protocol guide](h
 ### verifyObj(keys, hmac_key?, obj)
 
 verify a signed object. `hmac_key` must be the same value as passed to `signObj`.
-
 
 ### box(content, recipients) => boxed
 
@@ -154,12 +155,4 @@ add new feed type to be used with `ssbKeys.generate()`
 ### LICENSE
 
 MIT
-
-
-
-
-
-
-
-
 

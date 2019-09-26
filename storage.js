@@ -63,7 +63,7 @@ module.exports = function (generate) {
   }
 
   exports.load = function(filename, cb) {
-    filename = toFile(filename, 'secret')
+    filename = toFile(filename)
     fs.readFile(filename, 'ascii', function(err, privateKeyStr) {
       if (err) return cb(err)
       var keys
