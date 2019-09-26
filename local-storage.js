@@ -1,5 +1,4 @@
 'use strict'
-var u = require('./util')
 
 function isFunction (f) {
   return 'function' == typeof f
@@ -7,8 +6,8 @@ function isFunction (f) {
 
 module.exports = function (generate) {
 
-  function create (filename, curve, legacy) {
-    var keys = generate(curve, legacy)
+  function create (filename, feedType, legacy) {
+    var keys = generate(feedType, legacy)
     localStorage[filename] = JSON.stringify(keys)
     return keys
   }
@@ -19,12 +18,12 @@ module.exports = function (generate) {
 
   return {
     createSync: create,
-    create: function(filename, curve, legacy, cb) {
+    create: function(filename, feedType, legacy, cb) {
       if(isFunction(legacy))
         cb = legacy, legacy = null
-      if(isFunction(curve))
-        cb = curve, curve = null
-      cb(null, create(filename, curve, legacy))
+      if(isFunction(feedType))
+        cb = feedType, feedType = null
+      cb(null, create(filename, feedType, legacy))
     },
     loadSync: load,
     load: function (filename, cb) {

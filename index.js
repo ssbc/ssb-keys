@@ -1,10 +1,7 @@
 'use strict'
 var sodium     = require('chloride')
-
 var pb         = require('private-box')
-
 var u          = require('./util')
-
 var isBuffer = Buffer.isBuffer
 
 //UTILS
@@ -22,57 +19,85 @@ var hmac = sodium.crypto_auth
 
 exports.hash = u.hash
 
-exports.getTag = u.getTag
+exports.getFeedType = u.getFeedType
+exports.getTag = u.getFeedType // deprecated
 
 function isObject (o) {
   return 'object' === typeof o
-}
-
-function isFunction (f) {
-  return 'function' === typeof f
 }
 
 function isString(s) {
   return 'string' === typeof s
 }
 
-var curves = {}
-curves.ed25519 = require('./sodium')
+const feedTypes = {
+  ed25519: require('./sodium'),
+  'ed25519.test': require('./sodium')
+}
 
-function getCurve(keys) {
-  var curve = keys.curve
-
-  if(!keys.curve && isString(keys.public))
-    keys = keys.public
-
-  if(!curve && isString(keys))
-    curve = u.getTag(keys)
-
-  if(!curves[curve]) {
-    throw new Error(
-      'unkown curve:' + curve +
-      ' expected: '+Object.keys(curves)
-    )
+exports.use = (name, object) => {
+  if (typeof name !== 'string' || name.length === 0) {
+    throw new Error(`Invalid name: "${name}", expected string with non-zero length`)
   }
 
-  return curve
+  const requiredMethods = [
+    'generate',
+    'sign',
+    'verify'
+  ]
+
+  const isNotObject = typeof object !== 'object'
+  const isInvalidObject = isNotObject || requiredMethods.some(methodName => 
+    typeof object[methodName] !== 'function'
+  )
+
+  if (isInvalidObject) {
+    const expectedMethods = requiredMethods.join(', ')
+    console.log(object)
+    throw new Error(`Invalid object. Missing required methods, expected: ${expectedMethods}`)
+  }
+
+  if (feedTypes[name] != null) {
+    throw new Error(`Duplicate feed type: "${name}"`)
+  }
+
+  feedTypes[name] = object
+}
+
+function getFeedType(keys) {
+  let { feedType } = keys
+  feedType = feedType || keys.curve
+
+  if(!feedType && isString(keys.public))
+    keys = keys.public
+
+  if(!feedType && isString(keys))
+    feedType = u.getFeedType(keys)
+
+  if(!feedTypes[feedType]) {
+    throw new Error(`unkown feed type: "${feedType}", expected: "${Object.keys(feedTypes)}"`)
+  }
+
+  return feedType
 }
 
 //this should return a key pair:
-// {curve: curve, public: Buffer, private: Buffer}
+// { feedType: string, curve: string, public: Buffer, private: Buffer}
+exports.generate = function (feedType, seed) {
+  feedType = feedType || 'ed25519'
 
-exports.generate = function (curve, seed) {
-  curve = curve || 'ed25519'
+  if(feedTypes[feedType] == null)
+    throw new Error(`unknown feed type: "${feedType}"`)
 
-  if(!curves[curve])
-    throw new Error('unknown curve:'+curve)
-
-  return u.keysToJSON(curves[curve].generate(seed), curve)
+  return u.keysToJSON(feedTypes[feedType].generate(seed), feedType)
 }
 
 //import functions for loading/saving keys from storage
 var storage = require('./storage')(exports.generate)
-for(var key in storage) exports[key] = storage[key]
+exports.load = storage.load
+exports.loadSync = storage.loadSync
+exports.create = storage.create
+exports.createSync = storage.createSync
 
 
 exports.loadOrCreate = function (filename, cb) {
@@ -96,14 +121,17 @@ exports.loadOrCreateSync = function (filename) {
 
 function sign (keys, msg) {
   if(isString(msg))
-    msg = new Buffer(msg)
+    msg = Buffer.from(msg)
   if(!isBuffer(msg))
     throw new Error('msg should be buffer')
-  var curve = getCurve(keys)
+  var feedType = getFeedType(keys)
 
-  return curves[curve]
+  const prefix = feedTypes[feedType]
     .sign(u.toBuffer(keys.private || keys), msg)
-    .toString('base64')+'.sig.'+curve
+    .toString('base64')
+  const suffix = `.sig.${feedType}`
+
+  return prefix + suffix
 
 }
 
@@ -112,10 +140,10 @@ function sign (keys, msg) {
 function verify (keys, sig, msg) {
   if(isObject(sig))
     throw new Error('signature should be base64 string, did you mean verifyObj(public, signed_obj)')
-  return curves[getCurve(keys)].verify(
+  return feedTypes[getFeedType(keys)].verify(
     u.toBuffer(keys.public || keys),
     u.toBuffer(sig),
-    isBuffer(msg) ? msg : new Buffer(msg)
+    isBuffer(msg) ? msg : Buffer.from(msg)
   )
 }
 
@@ -124,7 +152,7 @@ function verify (keys, sig, msg) {
 exports.signObj = function (keys, hmac_key, obj) {
   if(!obj) obj = hmac_key, hmac_key = null
   var _obj = clone(obj)
-  var b = new Buffer(JSON.stringify(_obj, null, 2))
+  var b = Buffer.from(JSON.stringify(_obj, null, 2))
   if(hmac_key) b = hmac(b, u.toBuffer(hmac_key))
   _obj.signature = sign(keys, b)
   return _obj
@@ -135,13 +163,13 @@ exports.verifyObj = function (keys, hmac_key, obj) {
   obj = clone(obj)
   var sig = obj.signature
   delete obj.signature
-  var b = new Buffer(JSON.stringify(obj, null, 2))
+  var b = Buffer.from(JSON.stringify(obj, null, 2))
   if(hmac_key) b = hmac(b, u.toBuffer(hmac_key))
   return verify(keys, sig, b)
 }
 
 exports.box = function (msg, recipients) {
-  msg = new Buffer(JSON.stringify(msg))
+  msg = Buffer.from(JSON.stringify(msg))
 
   recipients = recipients.map(function (keys) {
     return sodium.crypto_sign_ed25519_pk_to_curve25519(u.toBuffer(keys.public || keys))
@@ -163,7 +191,9 @@ exports.unboxBody = function (boxed, key) {
   var msg = pb.multibox_open_body(boxed, key)
   try {
     return JSON.parse(''+msg)
-  } catch (_) { }
+  } catch (_) {
+    return undefined
+  }
 }
 
 exports.unbox = function (boxed, keys) {
@@ -174,8 +204,9 @@ exports.unbox = function (boxed, keys) {
   try {
     var msg = pb.multibox_open(boxed, sk)
     return JSON.parse(''+msg)
-  } catch (_) { }
-  return
+  } catch (_) {
+    return undefined
+  }
 }
 
 exports.secretBox = function secretBox (data, key) {

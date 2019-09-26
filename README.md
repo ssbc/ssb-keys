@@ -40,6 +40,7 @@ in the below methods, `keys` is an object of the following form:
 
 ``` js
 {
+  "feedType": "ed25519"
   "curve": "ed25519",
   "public": "<base64_public_key>.ed25519",
   "private": "<base64_private_key>.ed25519",
@@ -53,11 +54,15 @@ when stored in a file, the file also contains a comment warning the reader
 about safe private key security.
 Comment lines are prefixed with `#` after removing them the result is valid JSON.
 
+The `curve` property is a legacy property used to denote the feed type and may be deprecated in the future.
+
 ### hash (data, encoding) => id
 Returns the sha256 hash of a given data. If encoding is not provided then it is assumed to be _binary_.
 
-### getTag (ssb_id) => tag
-The SSB ids contain a tag at the end. This function returns it.
+### getFeedType (ssbId) => feedType
+
+Each SSB ID contains a feed type at the end. This function returns it.
+
 So if you have a string like `@gaQw6zD4pHrg8zmrqku24zTSAINhRg=.ed25519` this function would return `ed25519`.
 This is useful as SSB start providing features for different encryption methods and cyphers.
 
@@ -77,21 +82,23 @@ variations and parts `loadOrCreate` (async), `load`, `create`
 `createSync` `loadSync`. But since you only need to load once,
 using the combined function is easiest.
 
-`keys` is an object as described in [`keys`](#keys) section.
-
 ### loadOrCreate (filename, cb)
 
 If a sync file access method is not available, `loadOrCreate` can be called with a
 callback. that callback will be called with `cb(null, keys)`. If loading
 the keys errored, new keys are created.
 
-### generate(curve, seed) => keys
+### generate(feedType, seed) => keys
 
 generate a key, with optional seed.
-curve defaults to `ed25519` (and no other type is currently supported)
+
+feedType defaults to `ed25519` but also supports `ed25519.test`
+
 seed should be a 32 byte buffer.
 
 `keys` is an object as described in [`keys`](#keys) section.
+
+New feed types can be added with `ssbKeys.use()`.
 
 ### signObj(keys, hmac_key?, obj)
 
@@ -108,7 +115,6 @@ The fine details of the signature format are described in the [protocol guide](h
 ### verifyObj(keys, hmac_key?, obj)
 
 verify a signed object. `hmac_key` must be the same value as passed to `signObj`.
-
 
 ### box(content, recipients) => boxed
 
@@ -145,15 +151,11 @@ symmetrically encrypt an object with `key` (a buffer)
 
 symmetrically decrypt an object with `key` (a buffer)
 
+### use(feedType, { generate, sign, verify }) => ssbKeys
+
+add new feed type to be used with `ssbKeys.generate()`
+
 ### LICENSE
 
 MIT
-
-
-
-
-
-
-
-
 

@@ -51,7 +51,7 @@ module.exports = function (generate) {
 
   function reconstructKeys(keyfile) {
     var privateKey = keyfile
-      .replace(/\s*\#[^\n]*/g, '')
+      .replace(/\s*#[^\n]*/g, '')
       .split('\n').filter(empty).join('')
 
     //if the key is in JSON format, we are good.
@@ -63,7 +63,7 @@ module.exports = function (generate) {
   }
 
   exports.load = function(filename, cb) {
-    filename = toFile(filename, 'secret')
+    filename = toFile(filename)
     fs.readFile(filename, 'ascii', function(err, privateKeyStr) {
       if (err) return cb(err)
       var keys
@@ -78,14 +78,14 @@ module.exports = function (generate) {
     return reconstructKeys(fs.readFileSync(filename, 'ascii'))
   }
 
-  exports.create = function(filename, curve, legacy, cb) {
+  exports.create = function(filename, feedType, legacy, cb) {
     if(isFunction(legacy))
       cb = legacy, legacy = null
-    if(isFunction(curve))
-      cb = curve, curve = null
+    if(isFunction(feedType))
+      cb = feedType, feedType = null
 
     filename = toFile(filename)
-    var keys = generate(curve)
+    var keys = generate(feedType)
     var keyfile = constructKeys(keys, legacy)
     mkdirp(path.dirname(filename), function (err) {
       if(err) return cb(err)
@@ -96,9 +96,9 @@ module.exports = function (generate) {
     })
   }
 
-  exports.createSync = function(filename, curve, legacy) {
+  exports.createSync = function(filename, feedType, legacy) {
     filename = toFile(filename)
-    var keys = generate(curve)
+    var keys = generate(feedType)
     var keyfile = constructKeys(keys, legacy)
     mkdirp.sync(path.dirname(filename))
     fs.writeFileSync(filename, keyfile, {mode: 0x100, flag: 'wx'})
