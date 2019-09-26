@@ -40,6 +40,7 @@ in the below methods, `keys` is an object of the following form:
 
 ``` js
 {
+  "feedType": "ed25519"
   "curve": "ed25519",
   "public": "<base64_public_key>.ed25519",
   "private": "<base64_private_key>.ed25519",
@@ -52,6 +53,8 @@ The format of the id feed is described in the [protocol guide - keys and identit
 when stored in a file, the file also contains a comment warning the reader
 about safe private key security.
 Comment lines are prefixed with `#` after removing them the result is valid JSON.
+
+The `curve` property is a legacy property used to denote the feed type and may be deprecated in the future.
 
 ### hash (data, encoding) => id
 Returns the sha256 hash of a given data. If encoding is not provided then it is assumed to be _binary_.
@@ -85,7 +88,7 @@ If a sync file access method is not available, `loadOrCreate` can be called with
 callback. that callback will be called with `cb(null, keys)`. If loading
 the keys errored, new keys are created.
 
-### generate(curve, seed) => keys
+### generate(feedType, seed) => keys
 
 generate a key, with optional seed.
 
@@ -148,7 +151,7 @@ symmetrically encrypt an object with `key` (a buffer)
 
 symmetrically decrypt an object with `key` (a buffer)
 
-### use(curveName, { generate, sign, verify }) => ssbKeys
+### use(feedType, { generate, sign, verify }) => ssbKeys
 
 add new feed type to be used with `ssbKeys.generate()`
 

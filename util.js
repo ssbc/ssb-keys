@@ -14,19 +14,20 @@ exports.hasSigil = function hasSigil (s) {
   return /^(@|%|&)/.test(s)
 }
 
-function setFeedType (key, curve) {
-  if(!curve) throw new Error('no curve for:' + key.toString('base64'))
-  return key.toString('base64')+'.' + curve.replace(/^\./, '')
+function setFeedType (key, feedType) {
+  if(!feedType) throw new Error('no feed type for:' + key.toString('base64'))
+  return key.toString('base64')+'.' + feedType.replace(/^\./, '')
 }
 
-exports.keysToJSON = function keysToJSON(keys, curve) {
-  curve = keys.curve || curve
+exports.keysToJSON = function keysToJSON(keys, feedType) {
+  feedType = keys.feedType || feedType
 
-  var pub = setFeedType(keys.public, curve)
+  var pub = setFeedType(keys.public, feedType)
   return {
-    curve,
+    curve: feedType, // deprecated
+    feedType,
     public: pub,
-    private: keys.private ? setFeedType(keys.private, curve) : undefined,
+    private: keys.private ? setFeedType(keys.private, feedType) : undefined,
     id: '@' + pub
   }
 }
