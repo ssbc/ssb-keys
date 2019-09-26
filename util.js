@@ -27,7 +27,7 @@ exports.keysToJSON = function keysToJSON(keys, curve) {
     curve: curve,
     public: pub,
     private: keys.private ? tag(keys.private, curve) : undefined,
-    id: '@'+(curve === 'ed25519' ? pub : exports.hash(pub))
+    id: '@' + pub
   }
 }
 

@@ -72,7 +72,10 @@ exports.generate = function (curve, seed) {
 
 //import functions for loading/saving keys from storage
 var storage = require('./storage')(exports.generate)
-for(var key in storage) exports[key] = storage[key]
+exports.load = storage.load
+exports.loadSync = storage.loadSync
+exports.create = storage.create
+exports.createSync = storage.createSync
 
 
 exports.loadOrCreate = function (filename, cb) {
@@ -169,11 +172,23 @@ exports.unboxBody = function (boxed, key) {
 exports.unbox = function (boxed, keys) {
   boxed = u.toBuffer(boxed)
 
+  var sk = keys._exchangeKey || sodium.crypto_sign_ed25519_sk_to_curve25519(u.toBuffer(keys.private || keys))
+  if(keys.private) keys._exchangeKey = sk //if keys is an object, cache the curve key.
   try {
-    var sk = sodium.crypto_sign_ed25519_sk_to_curve25519(u.toBuffer(keys.private || keys))
     var msg = pb.multibox_open(boxed, sk)
     return JSON.parse(''+msg)
   } catch (_) { }
   return
 }
 
+exports.secretBox = function secretBox (data, key) {
+  if(!data) return
+  var ptxt = Buffer.from(JSON.stringify(data))
+  return sodium.crypto_secretbox_easy(ptxt, key.slice(0, 24), key)
+}
+
+exports.secretUnbox = function secretUnbox (ctxt, key) {
+  var ptxt = sodium.crypto_secretbox_open_easy(ctxt, key.slice(0, 24), key)
+  if(!ptxt) return
+  return JSON.parse(ptxt.toString())
+}
