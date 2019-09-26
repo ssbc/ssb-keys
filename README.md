@@ -14,7 +14,7 @@ var keys = ssbkeys.loadOrCreateSync(filename)
 }*/
 
 //but for testing, .generate() is useful.
-var keys = ssbkeys.generate('feedType')
+var keys = ssbkeys.generate()
 /* => {
   id: String,
   public: String,
