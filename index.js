@@ -72,7 +72,10 @@ exports.generate = function (curve, seed) {
 
 //import functions for loading/saving keys from storage
 var storage = require('./storage')(exports.generate)
-for(var key in storage) exports[key] = storage[key]
+exports.load = storage.load
+exports.loadSync = storage.loadSync
+exports.create = storage.create
+exports.createSync = storage.createSync
 
 
 exports.loadOrCreate = function (filename, cb) {
