@@ -32,6 +32,7 @@ function isString(s) {
 
 const curves = {
   ed25519: require('./sodium'),
+  'ed25519.test': require('./sodium')
 }
 
 exports.use = (name, object) => {
