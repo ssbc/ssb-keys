@@ -56,8 +56,8 @@ Comment lines are prefixed with `#` after removing them the result is valid JSON
 ### hash (data, encoding) => id
 Returns the sha256 hash of a given data. If encoding is not provided then it is assumed to be _binary_.
 
-### getTag (ssb_id) => tag
-The SSB ids contain a tag at the end. This function returns it.
+### getFeedType (ssb_id) => feedType
+The SSB ids contain a feed type at the end. This function returns it.
 So if you have a string like `@gaQw6zD4pHrg8zmrqku24zTSAINhRg=.ed25519` this function would return `ed25519`.
 This is useful as SSB start providing features for different encryption methods and cyphers.
 
