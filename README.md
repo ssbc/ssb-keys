@@ -145,6 +145,10 @@ symmetrically encrypt an object with `key` (a buffer)
 
 symmetrically decrypt an object with `key` (a buffer)
 
+### ssbSecretKeyToPrivateBoxSecret(keys)
+
+Convert from the ed25519 secret key (ssb secret key type) to the curve25519 key type that is used by `private-box`.
+
 ### LICENSE
 
 MIT
