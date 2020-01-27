@@ -32,21 +32,21 @@ module.exports = function (generate) {
   function constructKeys(keys, legacy) {
     if(!keys) throw new Error('*must* pass in keys')
 
-    return [
-    '# this is your SECRET name.',
-    '# this name gives you magical powers.',
-    '# with it you can mark your messages so that your friends can verify',
-    '# that they really did come from you.',
-    '#',
-    '# if any one learns this name, they can use it to destroy your identity',
-    '# NEVER show this to anyone!!!',
-    '',
-    legacy ? keys.private : JSON.stringify(keys, null, 2),
-    '',
-    '# WARNING! It\'s vital that you DO NOT edit OR share your secret name',
-    '# instead, share your public name',
-    '# your public name: ' + keys.id
-    ].join('\n')
+    return `# WARNING: Never show this to anyone.
+# WARNING: Never edit it or use it on multiple devices at once.
+#
+# This is your SECRET, it gives you magical powers. With your secret you can
+# sign your messages so that your friends can verify that the messages came
+# from you. If anyone learns your secret, they can use it to impersonate you.
+#
+# If you use this secret on more than one device you will create a fork and
+# your friends will stop replicating your content.
+#
+${legacy ? keys.private : JSON.stringify(keys, null, 2)}
+#
+# The only part of this file that's safe to share is your public name:
+#
+#   ${keys.id}`
   }
 
   function reconstructKeys(keyfile) {
