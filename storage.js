@@ -32,7 +32,8 @@ module.exports = function (generate) {
   function constructKeys(keys, legacy) {
     if(!keys) throw new Error('*must* pass in keys')
 
-    return `# WARNING: Do not edit, share, or use this file on two devices at once.
+    return `# WARNING: Never show this to anyone.
+# WARNING: Never edit it or use it on multiple devices at once.
 #
 # This is your SECRET, it gives you magical powers. With your secret you can
 # sign your messages so that your friends can verify that the messages came
