@@ -50,7 +50,6 @@ ${legacy ? keys.private : JSON.stringify(keys, null, 2)}
   }
 
   function reconstructKeys(keyfile) {
-	  console.log(keyfile)
     var privateKey = keyfile
       .replace(/\s*\#[^\n]*/g, '')
       .split('\n').filter(empty).join('')
