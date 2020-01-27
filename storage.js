@@ -36,7 +36,7 @@ module.exports = function (generate) {
 #
 # This is your SECRET, it gives you magical powers. With your secret you can
 # sign your messages so that your friends can verify that the messages came
-# rom you. If anyone learns your secret, they can use it to impersonate you.
+# from you. If anyone learns your secret, they can use it to impersonate you.
 #
 # If you use this secret on more than one device you will create a fork and
 # your friends will stop replicating your content.
@@ -49,6 +49,7 @@ ${legacy ? keys.private : JSON.stringify(keys, null, 2)}
   }
 
   function reconstructKeys(keyfile) {
+	  console.log(keyfile)
     var privateKey = keyfile
       .replace(/\s*\#[^\n]*/g, '')
       .split('\n').filter(empty).join('')
