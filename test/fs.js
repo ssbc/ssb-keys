@@ -1,16 +1,20 @@
 var tape = require('tape')
 var ssbkeys = require('../')
 var crypto = require('crypto')
-var path = '/tmp/ssb-keys_'+Date.now()
+var path = require('path')
+var os = require('os')
 var fs = require('fs')
+
+const keyPath = path.join(os.tmpdir(), `ssb-keys-${Date.now()}`)
+console.log(keyPath)
 
 tape('create and load presigil-legacy async', function (t) {
 
   var keys = ssbkeys.generate('ed25519')
   keys.id = keys.id.substring(1)
-  fs.writeFileSync(path, JSON.stringify(keys))
+  fs.writeFileSync(keyPath, JSON.stringify(keys))
 
-  var k2 = ssbkeys.loadSync(path)
+  var k2 = ssbkeys.loadSync(keyPath)
   t.equal(k2.id, '@' + keys.id)
   t.end()
 
@@ -20,9 +24,9 @@ tape('create and load presigil-legacy', function (t) {
 
   var keys = ssbkeys.generate('ed25519')
   keys.id = keys.id.substring(1)
-  fs.writeFileSync(path, JSON.stringify(keys))
+  fs.writeFileSync(keyPath, JSON.stringify(keys))
 
-  ssbkeys.load(path, function (err, k2) {
+  ssbkeys.load(keyPath, function (err, k2) {
     if(err) throw err
     t.equal(k2.id, '@' + keys.id)
     t.end()
@@ -32,13 +36,13 @@ tape('create and load presigil-legacy', function (t) {
 
 tape('prevent clobbering existing keys', function (t) {
 
-  fs.writeFileSync(path, 'this file intentionally left blank', 'utf8')
+  fs.writeFileSync(keyPath, 'this file intentionally left blank', 'utf8')
   t.throws(function () {
-    ssbkeys.createSync(path)
+    ssbkeys.createSync(keyPath)
   })
-  ssbkeys.create(path, function (err) {
+  ssbkeys.create(keyPath, function (err) {
     t.ok(err)
-    fs.unlinkSync(path)
+    fs.unlinkSync(keyPath)
     t.end()
   })
 

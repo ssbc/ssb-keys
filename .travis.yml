@@ -1,0 +1,20 @@
+# Use Node.js configuration.
+language: node_js
+
+# Both latest Node.js and latest LTS.
+node_js:
+  - lts/*
+  - node
+
+# All of the operating systems!
+# Note: Windows support is very iffy.
+os:
+  - linux
+  - osx
+  - windows
+
+# Don't build arbitrary branches, just pull requests + master + semver tags.
+branches:
+  only:
+  - master
+  - "/^v\\d+\\.\\d+\\.\\d+$/"
