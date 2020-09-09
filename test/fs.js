@@ -1,6 +1,5 @@
 var tape = require('tape')
 var ssbkeys = require('../')
-var crypto = require('crypto')
 var path = require('path')
 var os = require('os')
 var fs = require('fs')

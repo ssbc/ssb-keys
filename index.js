@@ -28,10 +28,6 @@ function isObject (o) {
   return 'object' === typeof o
 }
 
-function isFunction (f) {
-  return 'function' === typeof f
-}
-
 function isString(s) {
   return 'string' === typeof s
 }
@@ -169,7 +165,9 @@ exports.unboxBody = function (boxed, key) {
   var msg = pb.multibox_open_body(boxed, key)
   try {
     return JSON.parse(''+msg)
-  } catch (_) { }
+  } catch (_) {
+    return
+  }
 }
 
 exports.unbox = function (boxed, keys) {
@@ -180,8 +178,9 @@ exports.unbox = function (boxed, keys) {
   try {
     var msg = pb.multibox_open(boxed, sk)
     return JSON.parse(''+msg)
-  } catch (_) { }
-  return
+  } catch (_) {
+    return
+  }
 }
 
 exports.secretBox = function secretBox (data, key) {
