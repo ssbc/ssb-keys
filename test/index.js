@@ -70,8 +70,8 @@ tape('sign and verify a hmaced object javascript object', function (t) {
   hmac_key = hmac_key.toString('base64')
   hmac_key2 = hmac_key2.toString('base64')
 
-  var keys = ssbkeys.generate()
-  var sig = ssbkeys.signObj(keys.private, hmac_key, obj)
+  keys = ssbkeys.generate()
+  sig = ssbkeys.signObj(keys.private, hmac_key, obj)
   console.log(sig)
   t.ok(sig)
   //verify must be passed the key to correctly verify

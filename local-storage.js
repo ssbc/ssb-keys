@@ -1,5 +1,4 @@
 'use strict'
-var u = require('./util')
 
 function isFunction (f) {
   return 'function' == typeof f
