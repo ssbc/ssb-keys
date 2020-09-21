@@ -13,8 +13,8 @@ os:
   - osx
   - windows
 
-# Don't build arbitrary branches, just pull requests + master + semver tags.
+# Don't build arbitrary branches, just pull requests + main + semver tags.
 branches:
   only:
-  - master
+  - main
   - "/^v\\d+\\.\\d+\\.\\d+$/"
