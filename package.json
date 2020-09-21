@@ -8,9 +8,9 @@
     "url": "git://github.com/ssbc/ssb-keys.git"
   },
   "dependencies": {
-    "chloride": "^2.2.8",
+    "chloride": "~2.2.8",
     "mkdirp": "~0.5.0",
-    "private-box": "^0.3.0"
+    "private-box": "~0.3.0"
   },
   "devDependencies": {
     "tape": "^3.0.3"
