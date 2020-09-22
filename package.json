@@ -13,11 +13,19 @@
     "private-box": "^0.3.0"
   },
   "devDependencies": {
+    "husky": "^4.3.0",
+    "pretty-quick": "^3.0.2",
+    "prettier": "^2.1.2",
     "tape": "^3.0.3"
   },
   "scripts": {
     "test": "tape test/*"
   },
   "author": "Paul Frazee <pfrazee@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
+  }
 }
