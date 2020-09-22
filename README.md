@@ -3,10 +3,10 @@
 supplies key loading and other cryptographic functions needed in secure-scuttlebutt apps.
 
 ```js
-var ssbkeys = require('ssb-keys')
+var ssbkeys = require("ssb-keys");
 
 //usually, load keys like this
-var keys = ssbkeys.loadOrCreateSync(filename)
+var keys = ssbkeys.loadOrCreateSync(filename);
 /* => {
   id: String,
   public: String,
@@ -14,22 +14,21 @@ var keys = ssbkeys.loadOrCreateSync(filename)
 }*/
 
 //but for testing, .generate() is useful.
-var keys = ssbkeys.generate()
+var keys = ssbkeys.generate();
 /* => {
   id: String,
   public: String,
   private: String
 }*/
 
-
 //hmac_key is a fixed value that applies to _THIS_ signature use, see below.
 
-var obj = ssbkeys.signObj(k, hmac_key, { foo: 'bar' })
-console.log(obj) /* => {
+var obj = ssbkeys.signObj(k, hmac_key, { foo: "bar" });
+console.log(obj); /* => {
   foo: 'bar',
   signature: ...
 } */
-ssbkeys.verifyObj(k, hmac_key, obj) // => true
+ssbkeys.verifyObj(k, hmac_key, obj); // => true
 ```
 
 ## api
@@ -38,7 +37,7 @@ ssbkeys.verifyObj(k, hmac_key, obj) // => true
 
 in the below methods, `keys` is an object of the following form:
 
-``` js
+```js
 {
   "curve": "ed25519",
   "public": "<base64_public_key>.ed25519",
@@ -54,9 +53,11 @@ about safe private key security.
 Comment lines are prefixed with `#` after removing them the result is valid JSON.
 
 ### hash (data, encoding) => id
+
 Returns the sha256 hash of a given data. If encoding is not provided then it is assumed to be _binary_.
 
 ### getTag (ssb_id) => tag
+
 The SSB ids contain a tag at the end. This function returns it.
 So if you have a string like `@gaQw6zD4pHrg8zmrqku24zTSAINhRg=.ed25519` this function would return `ed25519`.
 This is useful as SSB start providing features for different encryption methods and cyphers.
@@ -109,7 +110,6 @@ The fine details of the signature format are described in the [protocol guide](h
 
 verify a signed object. `hmac_key` must be the same value as passed to `signObj`.
 
-
 ### box(content, recipients) => boxed
 
 encrypt a message content to many recipients. msg will be JSON encoded, then encrypted
@@ -152,12 +152,3 @@ Convert from the ed25519 secret key (ssb secret key type) to the curve25519 key 
 ### LICENSE
 
 MIT
-
-
-
-
-
-
-
-
-
