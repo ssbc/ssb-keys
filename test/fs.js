@@ -5,7 +5,7 @@ var os = require("os");
 var fs = require("fs");
 
 const keyPath = path.join(os.tmpdir(), `ssb-keys-${Date.now()}`);
-console.log(keyPath);
+if (process.env.VERBOSE_TESTS) console.log(keyPath);
 
 tape("create and load presigil-legacy async", function (t) {
   var keys = ssbkeys.generate("ed25519");

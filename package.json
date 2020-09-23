@@ -24,7 +24,8 @@
     "node": ">=5.10.0"
   },
   "scripts": {
-    "test": "eslint *.js && nyc tape test/*"
+    "test": "eslint *.js && nyc tape test/*",
+    "test-verbose": "VERBOSE_TESTS=1 npm run test"
   },
   "author": "Paul Frazee <pfrazee@gmail.com>",
   "license": "MIT",
