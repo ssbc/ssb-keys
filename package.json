@@ -19,6 +19,9 @@
     "prettier": "^2.1.2",
     "tape": "^3.0.3"
   },
+  "engines": {
+    "node": ">=5.10.0"
+  },
   "scripts": {
     "test": "nyc tape test/*"
   },
