@@ -81,7 +81,7 @@ exports.loadOrCreateSync = function (filename) {
 //(a signature must be a node buffer)
 
 function sign(keys, msg) {
-  if (isString(msg)) msg = new Buffer(msg);
+  if (isString(msg)) msg = Buffer.from(msg);
   if (!isBuffer(msg)) throw new Error("msg should be buffer");
   var curve = getCurve(keys);
 
@@ -104,7 +104,7 @@ function verify(keys, sig, msg) {
   return curves[getCurve(keys)].verify(
     u.toBuffer(keys.public || keys),
     u.toBuffer(sig),
-    isBuffer(msg) ? msg : new Buffer(msg)
+    isBuffer(msg) ? msg : Buffer.from(msg)
   );
 }
 
@@ -113,7 +113,7 @@ function verify(keys, sig, msg) {
 exports.signObj = function (keys, hmac_key, obj) {
   if (!obj) (obj = hmac_key), (hmac_key = null);
   var _obj = clone(obj);
-  var b = new Buffer(JSON.stringify(_obj, null, 2));
+  var b = Buffer.from(JSON.stringify(_obj, null, 2));
   if (hmac_key) b = hmac(b, u.toBuffer(hmac_key));
   _obj.signature = sign(keys, b);
   return _obj;
@@ -124,13 +124,13 @@ exports.verifyObj = function (keys, hmac_key, obj) {
   obj = clone(obj);
   var sig = obj.signature;
   delete obj.signature;
-  var b = new Buffer(JSON.stringify(obj, null, 2));
+  var b = Buffer.from(JSON.stringify(obj, null, 2));
   if (hmac_key) b = hmac(b, u.toBuffer(hmac_key));
   return verify(keys, sig, b);
 };
 
 exports.box = function (msg, recipients) {
-  msg = new Buffer(JSON.stringify(msg));
+  msg = Buffer.from(JSON.stringify(msg));
 
   recipients = recipients.map(function (keys) {
     return sodium.crypto_sign_ed25519_pk_to_curve25519(
