@@ -3,32 +3,49 @@
 supplies key loading and other cryptographic functions needed in secure-scuttlebutt apps.
 
 ```js
-var ssbkeys = require("ssb-keys");
+var ssbKeys = require("ssb-keys");
 
-//usually, load keys like this
-var keys = ssbkeys.loadOrCreateSync(filename);
-/* => {
-  id: String,
-  public: String,
-  private: String
-}*/
+// Load or create keys in this way:
+var keys = ssbKeys.loadOrCreateSync("<path-to-file>");
+/* keys =>
+  {
+    "curve": "ed25519",
+    "public": "cFVodZoKwLcmXbM6UeASdl8+7+Uo8PNOuFnlcqk7qUc=.ed25519",
+    "private": "lUqlXYxjkM0/ljtGnwoM0CfP6ORA2DKZnzsQ4dJ1tKJwVWh1mgrAtyZdszpR4BJ2Xz7v5Sjw8064WeVyqTupRw==.ed25519",
+    "id": "@cFVodZoKwLcmXbM6UeASdl8+7+Uo8PNOuFnlcqk7qUc=.ed25519"
+  }
+*/
 
-//but for testing, .generate() is useful.
-var keys = ssbkeys.generate();
-/* => {
-  id: String,
-  public: String,
-  private: String
-}*/
+// `.generate()` is useful for testing purposes.
+var keys = ssbKeys.generate();
+/* keys =>
+  {
+    "curve": "ed25519",
+    "public": "YSa2zbx07RNKQrrFX1vS5mFN+Pbnul61hd9GGymao1o=.ed25519",
+    "private": "XhEkyFWb0TkhRU5t/yDTCI6Q9gwhsJM/SpL02UUwVtZhJrbNvHTtE0pCusVfW9LmYU349ue6XrWF30YbKZqjWg==.ed25519",
+    "id": "@YSa2zbx07RNKQrrFX1vS5mFN+Pbnul61hd9GGymao1o=.ed25519"
+  }
+*/
 
-//hmac_key is a fixed value that applies to _THIS_ signature use, see below.
+// hmac_key` is a shared secret between two peers used to authenticate the sent data.
+// To create an `hmac_key` you can use a 32bit buffer:
+var buff = Buffer.alloc(32);
+var hmac_key = buff.toString("base64");
 
-var obj = ssbkeys.signObj(k, hmac_key, { foo: "bar" });
-console.log(obj); /* => {
-  foo: 'bar',
-  signature: ...
-} */
-ssbkeys.verifyObj(k, hmac_key, obj); // => true
+// The `hmac_key` is a fixed value that applies to _THIS_ signature and is used
+// to authenticate the data and `k` is the sender keys
+var obj = ssbKeys.signObj(k, hmac_key, { foo: "bar" });
+/* obj => 
+  {
+    "foo": "bar",
+    "signature": "H39taOYa2emULWa1YDEaoLJBrbZ2GHsuVA6VsE9A1hbtpMcWpqXmZisH+nItx8BQR6JOO58K/uohMJkCrUKABQ==.sig.ed25519"
+  }
+*/
+
+/**
+ * Share your `hmac_key` with the message receiver so it can validate it.
+ */
+ssbKeys.verifyObj(k, hmac_key, obj); // => true
 ```
 
 ## api
