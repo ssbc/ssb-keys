@@ -28,7 +28,7 @@ var keys = ssbKeys.generate();
 */
 
 // hmac_key` is a shared secret between two peers used to authenticate the sent data.
-// To create an `hmac_key` you can use a 32bit buffer:
+// To create an `hmac_key` you can use a 32-byte buffer:
 var buff = Buffer.alloc(32);
 var hmac_key = buff.toString("base64");
 
