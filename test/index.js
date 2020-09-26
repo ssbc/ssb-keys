@@ -4,12 +4,12 @@ var crypto = require("crypto");
 var path = "/tmp/ssb-keys_" + Date.now();
 
 tape("create and load async", function (t) {
-  console.log(ssbkeys);
+  if (process.env.VERBOSE_TESTS) console.log(ssbkeys);
   ssbkeys.create(path, function (err, k1) {
     if (err) throw err;
     ssbkeys.load(path, function (err, k2) {
       if (err) throw err;
-      console.log(k1, k2);
+      if (process.env.VERBOSE_TESTS) console.log(k1, k2);
       t.equal(k1.id.toString("hex"), k2.id.toString("hex"));
       t.equal(k1.private.toString("hex"), k2.private.toString("hex"));
       t.equal(k1.public.toString("hex"), k2.public.toString("hex"));
@@ -30,11 +30,11 @@ tape("create and load sync", function (t) {
 tape("sign and verify a javascript object", function (t) {
   var obj = require("../package.json");
 
-  console.log(obj);
+  if (process.env.VERBOSE_TESTS) console.log(obj);
 
   var keys = ssbkeys.generate();
   var sig = ssbkeys.signObj(keys.private, obj);
-  console.log(sig);
+  if (process.env.VERBOSE_TESTS) console.log(sig);
   t.ok(sig);
   t.ok(ssbkeys.verifyObj(keys, sig));
   t.ok(ssbkeys.verifyObj({ public: keys.public }, sig));
@@ -51,7 +51,7 @@ tape("sign and verify a hmaced object javascript object", function (t) {
 
   var keys = ssbkeys.generate();
   var sig = ssbkeys.signObj(keys.private, hmac_key, obj);
-  console.log(sig);
+  if (process.env.VERBOSE_TESTS) console.log(sig);
   t.ok(sig);
   //verify must be passed the key to correctly verify
   t.notOk(ssbkeys.verifyObj(keys, sig));
@@ -69,7 +69,7 @@ tape("sign and verify a hmaced object javascript object", function (t) {
 
   keys = ssbkeys.generate();
   sig = ssbkeys.signObj(keys.private, hmac_key, obj);
-  console.log(sig);
+  if (process.env.VERBOSE_TESTS) console.log(sig);
   t.ok(sig);
   //verify must be passed the key to correctly verify
   t.notOk(ssbkeys.verifyObj(keys, sig));
