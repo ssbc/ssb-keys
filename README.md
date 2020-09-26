@@ -27,13 +27,18 @@ var keys = ssbKeys.generate();
   }
 */
 
-// hmac_key` is a shared secret between two peers used to authenticate the sent data.
-// To create an `hmac_key` you can use a 32-byte buffer:
-var buff = Buffer.alloc(32);
-var hmac_key = buff.toString("base64");
+// hmac_key` is a shared secret between two peers used to authenticate the sent
+// data and can be an empty 32-byte Buffer:
+var hmac_key = Buffer.alloc(32);
+// Or a random Crypto buffer:
+var hmac_key = crypto.randomBytes(32);
+// Or a 32-byte Buffer as base-64 string:
+var hmac_key = Buffer.from("7b6m0wZtYR0TevSgeNstWZUZam3IIG2B").toString(
+  "base64"
+);
 
 // The `hmac_key` is a fixed value that applies to _THIS_ signature and is used
-// to authenticate the data and `k` is the sender keys
+// to authenticate the data, `k` is the sender keys
 var obj = ssbKeys.signObj(k, hmac_key, { foo: "bar" });
 /* obj => 
   {
@@ -42,9 +47,7 @@ var obj = ssbKeys.signObj(k, hmac_key, { foo: "bar" });
   }
 */
 
-/**
- * Share your `hmac_key` with the message receiver so it can validate it.
- */
+// Share your `hmac_key` with the message receiver so it can verify it.
 ssbKeys.verifyObj(k, hmac_key, obj); // => true
 ```
 
