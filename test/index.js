@@ -27,7 +27,7 @@ tape("create and load sync", function (t) {
   t.end();
 });
 
-tape("sign and verify a javascript object", function (t) {
+tape("sign and verify a javascript object, no hmac key", function (t) {
   var obj = require("../package.json");
 
   if (process.env.VERBOSE_TESTS) console.log(obj);
@@ -38,6 +38,28 @@ tape("sign and verify a javascript object", function (t) {
   t.ok(sig);
   t.ok(ssbkeys.verifyObj(keys, sig));
   t.ok(ssbkeys.verifyObj({ public: keys.public }, sig));
+  t.end();
+});
+
+tape("sign and verify a javascript object, falsy hmac key", function (t) {
+  var obj = require("../package.json");
+  var keys = ssbkeys.generate();
+
+  var sig1 = ssbkeys.signObj(keys.private, null, obj);
+  t.ok(ssbkeys.verifyObj(keys, null, sig1), "null hmac_key");
+
+  var sig2 = ssbkeys.signObj(keys.private, undefined, obj);
+  t.ok(ssbkeys.verifyObj(keys, undefined, sig2), "undefined hmac_key");
+
+  var sig3 = ssbkeys.signObj(keys.private, "", obj);
+  t.ok(ssbkeys.verifyObj(keys, "", sig3), "empty string hmac_key");
+
+  var sig4 = ssbkeys.signObj(keys.private, 0, obj);
+  t.ok(ssbkeys.verifyObj(keys, 0, sig4), "zero hmac_key");
+
+  var sig5 = ssbkeys.signObj(keys.private, NaN, obj);
+  t.ok(ssbkeys.verifyObj(keys, NaN, sig5), "NaN hmac_key");
+
   t.end();
 });
 
