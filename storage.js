@@ -66,7 +66,7 @@ ${legacy ? keys.private : JSON.stringify(keys, null, 2)}
   }
 
   exports.load = function (filename, cb) {
-    filename = toFile(filename, "secret");
+    filename = toFile(filename);
     fs.readFile(filename, "ascii", function (err, privateKeyStr) {
       if (err) return cb(err);
       var keys;
