@@ -88,3 +88,19 @@ tape("loadOrCreateSync can create", function (t) {
   t.true(keys.id.length > 20, "keys.id is a long string");
   t.end();
 });
+
+tape("don't create dir for fully-specified path", function (t) {
+  const keyPath = path.join(os.tmpdir(), `ssb-keys-5-${Date.now()}`);
+  t.equal(fs.existsSync(keyPath), false);
+  ssbkeys.loadOrCreate(keyPath, (err) => {
+    t.error(err);
+    t.true(fs.lstatSync(keyPath).isFile());
+
+    ssbkeys.loadOrCreate(keyPath, (err, keys) => {
+      t.error(err);
+      t.equal(keys.public.length, 52);
+      fs.unlinkSync(keyPath);
+      t.end();
+    });
+  });
+});
