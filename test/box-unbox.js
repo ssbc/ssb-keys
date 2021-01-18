@@ -12,6 +12,17 @@ tape("box, unbox", function (t) {
   t.end();
 });
 
+tape("box, unbox imprecise", function (t) {
+  var alice = ssbkeys.generate();
+  var bob = ssbkeys.generate();
+
+  var boxed = ssbkeys.box({ okay: true }, [bob, alice]);
+  if (process.env.VERBOSE_TESTS) console.log("boxed", boxed);
+  var msg = ssbkeys.unbox(boxed, alice);
+  t.deepEqual(msg, { okay: true });
+  t.end();
+});
+
 tape("return undefined for invalid content", function (t) {
   var alice = ssbkeys.generate();
 
