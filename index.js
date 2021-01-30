@@ -108,24 +108,61 @@ function verify(keys, sig, msg) {
   );
 }
 
-// OTHER CRYTPO FUNCTIONS
+// OTHER CRYPTO FUNCTIONS
 
-exports.signObj = function (keys, hmac_key, obj) {
-  if (!obj) (obj = hmac_key), (hmac_key = null);
-  var _obj = clone(obj);
+/**
+ * To guarantee backwards compatibility, this function determines the true
+ * essence of each of the parameters and swaps them if necessary.
+ * This function is intended to be used only with `signObj` and `verifyObj`.
+ * Additional context:
+ *   - https://github.com/ssb-js/ssb-keys/issues/67
+ *   - https://github.com/ssb-js/ssb-keys/pull/80
+ * @param {Any} obj
+ * @param {Any} hmac_key
+ * @return {Array} [obj, hmac_key]
+ */
+function validateParameters(obj, hmac_key) {
+  var temp;
+
+  if (
+    (isObject(hmac_key) || !hmac_key) &&
+    (isBuffer(obj) || isString(obj) || !obj)
+  ) {
+    console.warn(
+      "\nWARNING! The parameter order (keys, hmac_key?, obj) has been deprecated," +
+        " please consider using the (keys, obj, hmac_key?) order instead.\n"
+    );
+    // Swap the parameters content before return.
+    temp = obj || null;
+    obj = hmac_key;
+    hmac_key = temp;
+  }
+
+  return [obj, hmac_key];
+}
+
+exports.signObj = function (keys, obj, hmac_key) {
+  var params = validateParameters(obj, hmac_key);
+  var _obj = clone(params[0]);
+  var _hmac_key = params[1];
   var b = Buffer.from(JSON.stringify(_obj, null, 2));
-  if (hmac_key) b = hmac(b, u.toBuffer(hmac_key));
+
+  if (_hmac_key) b = hmac(b, u.toBuffer(_hmac_key));
   _obj.signature = sign(keys, b);
+
   return _obj;
 };
 
-exports.verifyObj = function (keys, hmac_key, obj) {
-  if (!obj) (obj = hmac_key), (hmac_key = null);
-  obj = clone(obj);
-  var sig = obj.signature;
-  delete obj.signature;
-  var b = Buffer.from(JSON.stringify(obj, null, 2));
-  if (hmac_key) b = hmac(b, u.toBuffer(hmac_key));
+exports.verifyObj = function (keys, obj, hmac_key) {
+  var params = validateParameters(obj, hmac_key);
+  var _obj = clone(params[0]);
+  var _hmac_key = params[1];
+  var sig = _obj.signature;
+  delete _obj.signature;
+  var b = Buffer.from(JSON.stringify(_obj, null, 2));
+
+  if (_hmac_key) b = hmac(b, u.toBuffer(_hmac_key));
+
   return verify(keys, sig, b);
 };
 
