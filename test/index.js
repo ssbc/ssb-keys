@@ -27,6 +27,17 @@ tape("create and load sync", function (t) {
   t.end();
 });
 
+tape("sign and verify a string", function (t) {
+  var str = "secure scuttlebutt";
+  var keys = ssbkeys.generate();
+  var sig = ssbkeys.sign(keys.private, str);
+  if (process.env.VERBOSE_TESTS) console.log(sig);
+  t.ok(sig);
+  t.ok(ssbkeys.verify(keys, sig, str));
+  t.ok(ssbkeys.verify({ public: keys.public }, sig, str));
+  t.end();
+});
+
 tape("sign and verify a javascript object, no hmac key", function (t) {
   var obj = require("../package.json");
 
