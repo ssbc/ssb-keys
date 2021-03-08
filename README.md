@@ -40,7 +40,7 @@ var hmac_key = Buffer.from("7b6m0wZtYR0TevSgeNstWZUZam3IIG2B").toString(
 // The `hmac_key` is a fixed value that applies to _THIS_ signature and is used
 // to authenticate the data, `k` is the sender keys
 var obj = ssbKeys.signObj(k, hmac_key, { foo: "bar" });
-/* obj => 
+/* obj =>
   {
     "foo": "bar",
     "signature": "H39taOYa2emULWa1YDEaoLJBrbZ2GHsuVA6VsE9A1hbtpMcWpqXmZisH+nItx8BQR6JOO58K/uohMJkCrUKABQ==.sig.ed25519"
@@ -113,6 +113,14 @@ curve defaults to `ed25519` (and no other type is currently supported)
 seed should be a 32 byte buffer.
 
 `keys` is an object as described in [`keys`](#keys) section.
+
+### sign(keys, str)
+
+signs a string `str`, and returns the signature string.
+
+### verify(keys, sig, str)
+
+verifies a signature `sig` of the original content `str` by the author known by `keys`.
 
 ### signObj(keys, hmac_key?, obj)
 
