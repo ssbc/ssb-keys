@@ -93,6 +93,7 @@ function sign(keys, msg) {
     curve
   );
 }
+exports.sign = sign;
 
 //takes a public key, signature, and a hash
 //and returns true if the signature was valid.
@@ -107,6 +108,7 @@ function verify(keys, sig, msg) {
     isBuffer(msg) ? msg : Buffer.from(msg)
   );
 }
+exports.verify = verify;
 
 // OTHER CRYTPO FUNCTIONS
 
