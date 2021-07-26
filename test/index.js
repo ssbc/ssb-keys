@@ -27,7 +27,7 @@ tape("create and load sync", function (t) {
   t.end();
 });
 
-tape("sign and verify a string", function (t) {
+tape("sign and verify a string, no hmac key", function (t) {
   var str = "secure scuttlebutt";
   var keys = ssbkeys.generate();
   var sig = ssbkeys.sign(keys.private, str);
@@ -35,6 +35,24 @@ tape("sign and verify a string", function (t) {
   t.ok(sig);
   t.ok(ssbkeys.verify(keys, sig, str));
   t.ok(ssbkeys.verify({ public: keys.public }, sig, str));
+  t.end();
+});
+
+tape("sign and verify a hmaced string", function (t) {
+  var str = "secure scuttlebutt";
+  var keys = ssbkeys.generate();
+  var hmac_key = crypto.randomBytes(32);
+  var hmac_key2 = crypto.randomBytes(32);
+
+  var sig = ssbkeys.sign(keys.private, hmac_key, str);
+  if (process.env.VERBOSE_TESTS) console.log(sig);
+  t.ok(sig);
+  t.ok(ssbkeys.verify(keys, sig, hmac_key, str));
+  t.ok(ssbkeys.verify({ public: keys.public }, sig, hmac_key, str));
+  //a different hmac_key fails to verify
+  t.notOk(ssbkeys.verify(keys, sig, hmac_key2, str));
+  t.notOk(ssbkeys.verify({ public: keys.public }, sig, hmac_key2, str));
+
   t.end();
 });
 

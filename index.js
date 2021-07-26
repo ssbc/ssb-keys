@@ -80,9 +80,15 @@ exports.loadOrCreateSync = function (filename) {
 //takes a public key and a hash and returns a signature.
 //(a signature must be a node buffer)
 
-function sign(keys, msg) {
+function sign(keys, hmac_key, msg) {
+  if (!msg) {
+    msg = hmac_key;
+    hmac_key = null;
+  }
+
   if (isString(msg)) msg = Buffer.from(msg);
   if (!isBuffer(msg)) throw new Error("msg should be buffer");
+  if (hmac_key) msg = hmac(msg, u.toBuffer(hmac_key));
   var curve = getCurve(keys);
 
   return (
@@ -95,17 +101,24 @@ function sign(keys, msg) {
 }
 exports.sign = sign;
 
-//takes a public key, signature, and a hash
+//takes a public key, signature, optional hmac_key and a hash
 //and returns true if the signature was valid.
-function verify(keys, sig, msg) {
+function verify(keys, sig, hmac_key, msg) {
   if (isObject(sig))
     throw new Error(
       "signature should be base64 string, did you mean verifyObj(public, signed_obj)"
     );
+  if (!msg) {
+    msg = hmac_key;
+    hmac_key = null;
+  }
+
+  let bufferMsg = isBuffer(msg) ? msg : Buffer.from(msg);
+  if (hmac_key) bufferMsg = hmac(bufferMsg, u.toBuffer(hmac_key));
   return curves[getCurve(keys)].verify(
     u.toBuffer(keys.public || keys),
     u.toBuffer(sig),
-    isBuffer(msg) ? msg : Buffer.from(msg)
+    bufferMsg
   );
 }
 exports.verify = verify;
