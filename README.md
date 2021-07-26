@@ -114,11 +114,11 @@ seed should be a 32 byte buffer.
 
 `keys` is an object as described in [`keys`](#keys) section.
 
-### sign(keys, str)
+### sign(keys, hmac_key?, str)
 
 signs a string `str`, and returns the signature string.
 
-### verify(keys, sig, str)
+### verify(keys, sig, hmac_key?, str)
 
 verifies a signature `sig` of the original content `str` by the author known by `keys`.
 
