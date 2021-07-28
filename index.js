@@ -40,7 +40,7 @@ function getCurve(keys) {
 
   if (!curves[curve]) {
     throw new Error(
-      "unkown curve:" + curve + " expected: " + Object.keys(curves)
+      "unknown curve:" + curve + " expected: " + Object.keys(curves)
     );
   }
 
