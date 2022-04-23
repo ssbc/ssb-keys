@@ -104,7 +104,7 @@ exports.sign = sign;
 //takes a public key, signature, optional hmac_key and a hash
 //and returns true if the signature was valid.
 function verify(keys, sig, hmac_key, msg) {
-  if (isObject(sig))
+  if (!Buffer.isBuffer(sig) && isObject(sig))
     throw new Error(
       "signature should be base64 string, did you mean verifyObj(public, signed_obj)"
     );
