@@ -38,6 +38,17 @@ tape("sign and verify a string, no hmac key", function (t) {
   t.end();
 });
 
+tape("sign and verify a buffer, no hmac key", function (t) {
+  var buf = Buffer.from("secure scuttlebutt");
+  var keys = ssbkeys.generate();
+  var sig = ssbkeys.sign(keys.private, buf);
+  if (process.env.VERBOSE_TESTS) console.log(sig);
+  t.ok(sig);
+  t.ok(ssbkeys.verify(keys, sig, buf));
+  t.ok(ssbkeys.verify({ public: keys.public }, sig, buf));
+  t.end();
+});
+
 tape("sign and verify a hmaced string", function (t) {
   var str = "secure scuttlebutt";
   var keys = ssbkeys.generate();
