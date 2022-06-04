@@ -27,6 +27,38 @@ tape("create and load sync", function (t) {
   t.end();
 });
 
+tape("generate classic keys", function (t) {
+  var keys = ssbkeys.generate();
+  t.true(keys.id.startsWith("@"));
+  t.equals(keys.id.length, 53);
+  t.true(keys.id.endsWith(".ed25519"));
+  t.end();
+});
+
+tape("generate bendybutt-v1 keys", function (t) {
+  var keys = ssbkeys.generate(null, null, "bendybutt-v1");
+  t.true(keys.id.startsWith("ssb:feed/bendybutt-v1/"));
+  t.equals(keys.id.length, 66);
+  t.false(keys.id.endsWith(".ed25519"));
+  t.end();
+});
+
+tape("generate gabbygrove-v1 keys", function (t) {
+  var keys = ssbkeys.generate(null, null, "gabbygrove-v1");
+  t.true(keys.id.startsWith("ssb:feed/gabbygrove-v1/"));
+  t.equals(keys.id.length, 67);
+  t.false(keys.id.endsWith(".ed25519"));
+  t.end();
+});
+
+tape("generate buttwoo-v1 keys", function (t) {
+  var keys = ssbkeys.generate(null, null, "buttwoo-v1");
+  t.true(keys.id.startsWith("ssb:feed/buttwoo-v1/"));
+  t.equals(keys.id.length, 64);
+  t.false(keys.id.endsWith(".ed25519"));
+  t.end();
+});
+
 tape("sign and verify a string, no hmac key", function (t) {
   var str = "secure scuttlebutt";
   var keys = ssbkeys.generate();

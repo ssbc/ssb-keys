@@ -1,5 +1,6 @@
 "use strict";
 var cl = require("chloride");
+var SSBURI = require("ssb-uri2");
 
 exports.hash = function (data, enc) {
   data =
@@ -18,15 +19,27 @@ function tag(key, tag) {
   return key.toString("base64") + "." + tag.replace(/^\./, "");
 }
 
-exports.keysToJSON = function keysToJSON(keys, curve) {
+exports.keysToJSON = function keysToJSON(keys, curve, feedFormat) {
   curve = keys.curve || curve;
+  feedFormat = feedFormat || "classic";
 
   var pub = tag(keys.public, curve);
+  let id = "@" + pub;
+  if (
+    feedFormat === "bendybutt-v1" ||
+    feedFormat === "buttwoo-v1" ||
+    feedFormat === "gabbygrove-v1"
+  ) {
+    const classicUri = SSBURI.fromFeedSigil(id);
+    const { type, data } = SSBURI.decompose(classicUri);
+    id = SSBURI.compose({ type, format: feedFormat, data });
+  }
+
   return {
     curve: curve,
     public: pub,
     private: keys.private ? tag(keys.private, curve) : undefined,
-    id: "@" + pub,
+    id,
   };
 };
 

@@ -50,12 +50,12 @@ function getCurve(keys) {
 //this should return a key pair:
 // {curve: curve, public: Buffer, private: Buffer}
 
-exports.generate = function (curve, seed) {
+exports.generate = function (curve, seed, feedFormat) {
   curve = curve || "ed25519";
 
   if (!curves[curve]) throw new Error("unknown curve:" + curve);
 
-  return u.keysToJSON(curves[curve].generate(seed), curve);
+  return u.keysToJSON(curves[curve].generate(seed), curve, feedFormat);
 };
 
 //import functions for loading/saving keys from storage
