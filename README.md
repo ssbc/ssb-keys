@@ -106,13 +106,16 @@ If a sync file access method is not available, `loadOrCreate` can be called with
 callback. that callback will be called with `cb(null, keys)`. If loading
 the keys errored, new keys are created.
 
-### generate(curve, seed) => keys
+### generate(curve, seed, feedFormat) => keys
 
-generate a key, with optional seed.
-curve defaults to `ed25519` (and no other type is currently supported)
-seed should be a 32 byte buffer.
+generate a key, with optional `seed` (which should be a 32 byte buffer).
 
-`keys` is an object as described in [`keys`](#keys) section.
+`curve` defaults to `ed25519` (and no other type is currently supported)
+
+`feedFormat` can be either `classic`, `bendybutt-v1`, `gabbygrove-v1`, or `buttwoo-v1`. By default it's "classic".
+
+`keys` is an object as described in [`keys`](#keys) section. `keys.id` is an
+`@` sigil ID in the case of `classic` feed format and it's an SSB URI otherwise.
 
 ### sign(keys, hmac_key?, str)
 
