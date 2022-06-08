@@ -7,7 +7,7 @@ module.exports = {
   generate: function (seed) {
     if (seed && typeof seed === "string") {
       const buf = Buffer.alloc(32);
-      Buffer.from(seed.substring(0, 32), "ascii").copy(buf);
+      Buffer.from(seed.substring(0, 32), "utf-8").copy(buf);
       seed = buf;
     }
     if (!seed) sodium.randombytes((seed = Buffer.alloc(32)));
