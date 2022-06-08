@@ -108,7 +108,8 @@ the keys errored, new keys are created.
 
 ### generate(curve, seed, feedFormat) => keys
 
-generate a key, with optional `seed` (which should be a 32 byte buffer).
+generate a key, with optional `seed` (which should be a 32 byte buffer, but
+can be a string of any length which is then converted to a 32 byte buffer).
 
 `curve` defaults to `ed25519` (and no other type is currently supported)
 

@@ -187,6 +187,21 @@ tape("seeded keys, ed25519", function (t) {
   t.end();
 });
 
+tape("seeded keys with strings, ed25519", function (t) {
+  var k1 = ssbkeys.generate("ed25519", "foo");
+  var k2 = ssbkeys.generate("ed25519", "f" + "oo");
+  t.deepEqual(k1, k2);
+
+  // String lengths over 32 are truncated
+  var veryLongString = "bar".repeat(1000);
+  var longString = "bar".repeat(11);
+  var k3 = ssbkeys.generate("ed25519", veryLongString);
+  var k4 = ssbkeys.generate("ed25519", longString);
+  t.deepEqual(k3, k4);
+
+  t.end();
+});
+
 tape('ed25519 id === "@" ++ pubkey', function (t) {
   var keys = ssbkeys.generate("ed25519");
   t.equal(keys.id, "@" + keys.public);

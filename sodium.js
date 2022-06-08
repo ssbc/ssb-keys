@@ -5,6 +5,11 @@ module.exports = {
   curves: ["ed25519"],
 
   generate: function (seed) {
+    if (seed && typeof seed === "string") {
+      const buf = Buffer.alloc(32);
+      Buffer.from(seed.substring(0, 32), "ascii").copy(buf);
+      seed = buf;
+    }
     if (!seed) sodium.randombytes((seed = Buffer.alloc(32)));
 
     var keys = seed
