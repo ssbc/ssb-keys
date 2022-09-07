@@ -28,6 +28,7 @@ exports.keysToJSON = function keysToJSON(keys, curve, feedFormat) {
   if (
     feedFormat === "bendybutt-v1" ||
     feedFormat === "buttwoo-v1" ||
+    feedFormat === "indexed-v1" ||
     feedFormat === "gabbygrove-v1"
   ) {
     const classicUri = SSBURI.fromFeedSigil(id);

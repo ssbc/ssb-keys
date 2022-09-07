@@ -59,6 +59,14 @@ tape("generate buttwoo-v1 keys", function (t) {
   t.end();
 });
 
+tape("generate indexed-v1 keys", function (t) {
+  var keys = ssbkeys.generate(null, null, "indexed-v1");
+  t.true(keys.id.startsWith("ssb:feed/indexed-v1/"));
+  t.equals(keys.id.length, 64);
+  t.false(keys.id.endsWith(".ed25519"));
+  t.end();
+});
+
 tape("sign and verify a string, no hmac key", function (t) {
   var str = "secure scuttlebutt";
   var keys = ssbkeys.generate();

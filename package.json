@@ -11,7 +11,7 @@
     "chloride": "~2.4.1",
     "mkdirp": "~0.5.0",
     "private-box": "~0.3.0",
-    "ssb-uri2": "^2.0.1"
+    "ssb-uri2": "ssbc/ssb-uri2#indexed2"
   },
   "devDependencies": {
     "eslint": "^7.9.0",
