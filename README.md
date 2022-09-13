@@ -113,7 +113,8 @@ can be a string of any length which is then converted to a 32 byte buffer).
 
 `curve` defaults to `ed25519` (and no other type is currently supported)
 
-`feedFormat` can be either `classic`, `bendybutt-v1`, `gabbygrove-v1`, or `buttwoo-v1`. By default it's "classic".
+`feedFormat` can be either `classic`, `bendybutt-v1`, `gabbygrove-v1`,
+`buttwoo-v1`, or `indexed-v1`. By default it's "classic".
 
 `keys` is an object as described in [`keys`](#keys) section. `keys.id` is an
 `@` sigil ID in the case of `classic` feed format and it's an SSB URI otherwise.
