@@ -67,6 +67,19 @@ tape("loadOrCreate can create", function (t) {
   });
 });
 
+tape("loadOrCreate can create buttwoo-v1 keys", function (t) {
+  var keyPath = path.join(os.tmpdir(), `ssb-keys-21-${Date.now()}`);
+  t.equal(fs.existsSync(keyPath), false);
+
+  ssbkeys.loadOrCreate(keyPath, { feedFormat: "buttwoo-v1" }, (err, keys) => {
+    t.error(err);
+    t.true(keys.id.startsWith("ssb:feed/buttwoo-v1/"));
+    t.equals(keys.id.length, 64);
+    t.false(keys.id.endsWith(".ed25519"));
+    t.end();
+  });
+});
+
 tape("loadOrCreateSync can load", function (t) {
   var keyPath = path.join(os.tmpdir(), `ssb-keys-3-${Date.now()}`);
   var keys = ssbkeys.generate("ed25519");
@@ -86,6 +99,17 @@ tape("loadOrCreateSync can create", function (t) {
   t.true(keys.public.length > 20, "keys.public is a long string");
   t.true(keys.private.length > 20, "keys.private is a long string");
   t.true(keys.id.length > 20, "keys.id is a long string");
+  t.end();
+});
+
+tape("loadOrCreateSync can create buttwoo-v1 keys", function (t) {
+  var keyPath = path.join(os.tmpdir(), `ssb-keys-41-${Date.now()}`);
+  t.equal(fs.existsSync(keyPath), false);
+
+  const keys = ssbkeys.loadOrCreateSync(keyPath, { feedFormat: "buttwoo-v1" });
+  t.true(keys.id.startsWith("ssb:feed/buttwoo-v1/"));
+  t.equals(keys.id.length, 64);
+  t.false(keys.id.endsWith(".ed25519"));
   t.end();
 });
 

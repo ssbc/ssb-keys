@@ -62,18 +62,22 @@ exports.generate = function (curve, seed, feedFormat) {
 var storage = require("./storage")(exports.generate);
 for (var key in storage) exports[key] = storage[key];
 
-exports.loadOrCreate = function (filename, cb) {
+exports.loadOrCreate = function (filename, generateOpts, cb) {
+  if (!cb) {
+    cb = generateOpts;
+    generateOpts = null;
+  }
   exports.load(filename, function (err, keys) {
     if (!err) return cb(null, keys);
-    exports.create(filename, cb);
+    exports.create(filename, generateOpts, cb);
   });
 };
 
-exports.loadOrCreateSync = function (filename) {
+exports.loadOrCreateSync = function (filename, generateOpts) {
   try {
     return exports.loadSync(filename);
   } catch (err) {
-    return exports.createSync(filename);
+    return exports.createSync(filename, generateOpts);
   }
 };
 

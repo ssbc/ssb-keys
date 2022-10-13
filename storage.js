@@ -84,27 +84,38 @@ ${legacy ? keys.private : JSON.stringify(keys, null, 2)}
     return reconstructKeys(fs.readFileSync(filename, "ascii"));
   };
 
-  exports.create = function (filename, curve, legacy, cb) {
+  function curveOrOpts(opts) {
+    return !opts ? {} : isObject(opts) ? opts : { curve: opts };
+  }
+
+  exports.create = function (filename, generateOpts, legacy, cb) {
     if (isFunction(legacy)) (cb = legacy), (legacy = null);
-    if (isFunction(curve)) (cb = curve), (curve = null);
+    if (isFunction(generateOpts)) (cb = generateOpts), (generateOpts = null);
+
+    const { curve, seed, feedFormat } = curveOrOpts(generateOpts);
 
     filename = toFile(filename);
-    var keys = generate(curve);
+    var keys = generate(curve, seed, feedFormat);
     var keyfile = constructKeys(keys, legacy);
     mkdirp(path.dirname(filename), function (err) {
       if (err) return cb(err);
-      fs.writeFile(filename, keyfile, { mode: 0x100, flag: "wx" }, function (
-        err
-      ) {
-        if (err) return cb(err);
-        cb(null, keys);
-      });
+      fs.writeFile(
+        filename,
+        keyfile,
+        { mode: 0x100, flag: "wx" },
+        function (err) {
+          if (err) return cb(err);
+          cb(null, keys);
+        }
+      );
     });
   };
 
-  exports.createSync = function (filename, curve, legacy) {
+  exports.createSync = function (filename, generateOpts, legacy) {
+    const { curve, seed, feedFormat } = curveOrOpts(generateOpts);
+
     filename = toFile(filename);
-    var keys = generate(curve);
+    var keys = generate(curve, seed, feedFormat);
     var keyfile = constructKeys(keys, legacy);
     mkdirp.sync(path.dirname(filename));
     fs.writeFileSync(filename, keyfile, { mode: 0x100, flag: "wx" });
