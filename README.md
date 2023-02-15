@@ -82,7 +82,7 @@ The SSB ids contain a tag at the end. This function returns it.
 So if you have a string like `@gaQw6zD4pHrg8zmrqku24zTSAINhRg=.ed25519` this function would return `ed25519`.
 This is useful as SSB start providing features for different encryption methods and cyphers.
 
-### loadOrCreateSync (filename) => keys
+### loadOrCreateSync (filename, [generateOpts]) => keys
 
 Load a file containing the your private key. the file will also
 contain a comment with a warning about keeping the file secret.
@@ -99,12 +99,13 @@ variations and parts `loadOrCreate` (async), `load`, `create`
 using the combined function is easiest.
 
 `keys` is an object as described in [`keys`](#keys) section.
+`generateOpts` is optional but if provided has the shape `{curve, seed, feedFormat}`.
 
-### loadOrCreate (filename, cb)
+### loadOrCreate (filename, [generateOpts,] cb)
 
 If a sync file access method is not available, `loadOrCreate` can be called with a
 callback. that callback will be called with `cb(null, keys)`. If loading
-the keys errored, new keys are created.
+the keys errored, new keys are created. `generateOpts` is optional but if provided has the shape `{curve, seed, feedFormat}`.
 
 ### generate(curve, seed, feedFormat) => keys
 
