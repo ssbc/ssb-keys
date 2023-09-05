@@ -185,6 +185,17 @@ tape("sign and verify a hmaced object javascript object", function (t) {
   t.end();
 });
 
+tape("sign and verify with a buffer obj and buffer hmac_key", function (t) {
+  var obj = crypto.randomBytes(40);
+  var hmac_key = crypto.randomBytes(32);
+  var keys = ssbkeys.generate();
+  var sig = ssbkeys.signObj(keys.private, hmac_key, obj);
+  if (process.env.VERBOSE_TESTS) console.log(sig);
+  t.ok(sig);
+  t.ok(ssbkeys.verifyObj(keys, hmac_key, sig));
+  t.end();
+});
+
 tape("seeded keys, ed25519", function (t) {
   var seed = crypto.randomBytes(32);
   var k1 = ssbkeys.generate("ed25519", seed);
